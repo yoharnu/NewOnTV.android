@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">NewOnTV.android</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="pref_default">default</string>
+    <string name="addShow">Add Show</string>
+    <string name="forceRefresh">Force Refresh</string>
+    <string name="title_activity_edit_shows_list">Add/Remove Shows</string>
+    <string name="addShowByName">Add Show by Title</string>
+    <string name="viewShowsList">My Shows</string>
+    <string name="enter_show_title">Enter show title</string>
+    <string name="search">Search</string>
+
+</resources>
