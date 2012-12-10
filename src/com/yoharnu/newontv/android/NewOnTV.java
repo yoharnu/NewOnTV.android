@@ -260,6 +260,9 @@ public class NewOnTV extends Activity {
 		case R.id.menu_add_remove:
 			startActivity(new Intent(this, EditShowsList.class));
 			break;
+		case R.id.menu_settings:
+			startActivity(new Intent(this, Settings.class));
+			break;
 		}
 	}
 

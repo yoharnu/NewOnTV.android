@@ -19,5 +19,8 @@
     <string name="deleteShow">Delete Show</string>
     <string name="title_activity_delete_show">Delete Show</string>
     <string name="editList">Edit List</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="settings_export">Export List...</string>
+    <string name="settings_import">Import List...</string>
 
 </resources>
