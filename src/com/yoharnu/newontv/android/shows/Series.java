@@ -112,7 +112,7 @@ public class Series {
 
 	private void setupSeriesById(final String id) {
 		this.seriesid = id;
-		file = App.getContext().getCacheDir().getAbsolutePath() + id;
+		file = App.getContext().getCacheDir().getAbsolutePath() + "/" + id;
 		cache = new File(file);
 		if (!cache.exists()) {
 			try {
@@ -130,10 +130,8 @@ public class Series {
 				task.get();
 			}
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		parse();

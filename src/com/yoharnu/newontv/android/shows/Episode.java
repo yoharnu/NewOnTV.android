@@ -60,6 +60,7 @@ public class Episode {
 		}
 		try {
 			Scanner s = new Scanner(cache);
+			parent.episodes.clear();
 			while (s.hasNextLine()) {
 				String line = s.nextLine();
 				String tag = XMLParser.getTag(line);
@@ -116,7 +117,7 @@ public class Episode {
 			String line = s.nextLine();
 			String tag = XMLParser.getTag(line);
 			String data = XMLParser.getData(line);
-			if (data == null)
+			if (data == null || data.equals(""))
 				data = "Not Available";
 			if (tag.equals("Overview"))
 				overview = data.replaceAll("&quot;", "\"").replaceAll("&amp;",
