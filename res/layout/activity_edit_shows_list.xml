@@ -1,5 +1,6 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_edit_shows_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -7,46 +8,65 @@
     tools:context=".EditShowsList" >
 
     <TextView
+        android:id="@+id/addShowByName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/addShowByName" />
 
     <RelativeLayout
+        android:id="@+id/layout_show_search"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/addShowByName" >
 
         <Button
             android:id="@+id/addShowSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/search" 
             android:layout_alignParentRight="true"
             android:onClick="onAddShowSearchClick"
-            />
+            android:text="@string/search" />
 
         <EditText
+            android:id="@+id/addShowString"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/addShowSearch"
             android:hint="@string/enter_show_title"
             android:imeOptions="actionDone"
-            android:inputType="text" 
-            android:layout_toLeftOf="@id/addShowSearch"
-            android:singleLine="true"
-            android:id="@+id/addShowString" 
-            />
+            android:inputType="text"
+            android:singleLine="true" />
     </RelativeLayout>
 
-    <LinearLayout
-        android:id="@+id/showsListLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical" >
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/refresh_button"
+        android:layout_below="@+id/layout_show_search" >
 
-        <TextView
-            android:id="@+id/viewShowsList"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/showsListLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/viewShowsList" />
-    </LinearLayout>
+            android:orientation="vertical" >
+        </LinearLayout>
+    </ScrollView>
 
-</LinearLayout>
+    <Button
+        android:id="@+id/refresh_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:onClick="onRefreshClick"
+        android:text="@string/refresh" />
+    <Button
+        android:id="@+id/delete_show_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:onClick="onDeleteShowClick"
+        android:text="@string/deleteShow" />
+
+</RelativeLayout>
