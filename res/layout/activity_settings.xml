@@ -5,24 +5,4 @@
     android:padding="5dp"
     tools:context=".Settings" >
 
-    <Button
-        android:id="@+id/importButton"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:onClick="onImportClick"
-        android:text="@string/settings_import"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <Button
-        android:id="@+id/exportButton"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/importButton"
-        android:onClick="onExportClick"
-        android:text="@string/settings_export"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
 </RelativeLayout>

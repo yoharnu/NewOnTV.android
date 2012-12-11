@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="5dp"
     tools:context=".NewOnTV" >
 
@@ -28,20 +27,5 @@
         android:onClick="onForceRefresh"
         android:text="@string/forceRefresh"
         android:visibility="visible" />
-
-    <TextView
-        android:id="@+id/noShows"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/addShowButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/noShows"
-        android:onClick="onNoShowsClick"
-        android:text="@string/addShow"
-        android:visibility="gone" />
 
 </RelativeLayout>

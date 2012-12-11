@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+    <PreferenceCategory android:title="@string/pref_category_general" >
+        
+        <CheckBoxPreference
+            android:key="only_show_running"
+            android:title="@string/settings_runningShowsOnly"
+            android:summaryOn="@string/settings_runningShowsOnly_summaryOn"
+            android:summaryOff="@string/settings_runningShowsOnly_summaryOff"
+            android:defaultValue="false"
+            android:persistent="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

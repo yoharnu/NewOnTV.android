@@ -1,7 +1,10 @@
 package com.yoharnu.newontv.android;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+
+import org.apache.commons.io.FileUtils;
 
 import com.yoharnu.newontv.android.shows.EditShowsList;
 import com.yoharnu.newontv.android.shows.Episode;
@@ -9,12 +12,13 @@ import com.yoharnu.newontv.android.shows.Episode;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class NewOnTV extends Activity {
 
@@ -23,17 +27,7 @@ public class NewOnTV extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
 
-		if (App.shows.size() == 0) {
-			Button forceRefresh = (Button) findViewById(R.id.forceRefresh);
-			forceRefresh.setVisibility(Button.GONE);
-			TextView noShows = (TextView) findViewById(R.id.noShows);
-			noShows.setText("You currently have no shows. Add shows to see what's new tonight.");
-			noShows.setVisibility(TextView.VISIBLE);
-			Button addShow = (Button) findViewById(R.id.addShowButton);
-			addShow.setVisibility(Button.VISIBLE);
-		} else {
-			refresh();
-		}
+		refresh();
 
 	}
 
@@ -255,14 +249,77 @@ public class NewOnTV extends Activity {
 		startActivity(new Intent(this, EditShowsList.class));
 	}
 
-	public void onOptionsItemSelect(MenuItem item) {
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
 		case R.id.menu_add_remove:
 			startActivity(new Intent(this, EditShowsList.class));
-			break;
+			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this, Settings.class));
-			break;
+			return true;
+		case R.id.menu_export:
+			File src = new File(getFilesDir(), "shows");
+			File dir = new File(getExternalFilesDir(null), "NewOnTV");
+			if (!dir.exists()) {
+				dir.mkdir();
+			}
+			File dest = new File(dir, "shows.txt");
+			if (!dest.exists())
+				try {
+					dest.createNewFile();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			Toast toast = null;
+			try {
+				FileUtils.copyFile(src, dest);
+				toast = Toast.makeText(
+						App.getContext(),
+						"File successfully exported to "
+								+ dest.getAbsolutePath(), Toast.LENGTH_LONG);
+			} catch (IOException e) {
+				e.printStackTrace();
+				toast = Toast.makeText(App.getContext(),
+						dest.getAbsolutePath(), Toast.LENGTH_SHORT);
+			}
+			if (toast != null)
+				toast.show();
+			return true;
+		case R.id.menu_import:
+			dir = new File(getExternalFilesDir(null), "NewOnTV");
+			if (!dir.exists()) {
+				dir.mkdir();
+			}
+			src = new File(dir, "shows.txt");
+			dest = new File(getFilesDir(), "shows");
+			toast = null;
+			try {
+				FileUtils.copyFile(src, dest);
+				toast = Toast.makeText(
+						App.getContext(),
+						"File successfully imported from "
+								+ src.getAbsolutePath(), Toast.LENGTH_LONG);
+			} catch (IOException e) {
+				e.printStackTrace();
+				toast = Toast.makeText(App.getContext(),
+						"Failed to import file", Toast.LENGTH_SHORT);
+			}
+			if (toast != null)
+				toast.show();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
 	}
 

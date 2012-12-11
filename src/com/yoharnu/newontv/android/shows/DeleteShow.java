@@ -4,11 +4,13 @@ import java.util.LinkedList;
 
 import com.yoharnu.newontv.android.App;
 import com.yoharnu.newontv.android.R;
+import com.yoharnu.newontv.android.Settings;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,8 +64,15 @@ public class DeleteShow extends Activity implements OnItemSelectedListener {
 			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
+		case R.id.menu_add_remove:
+			startActivity(new Intent(this, EditShowsList.class));
+			return true;
+		case R.id.menu_settings:
+			startActivity(new Intent(this, Settings.class));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override

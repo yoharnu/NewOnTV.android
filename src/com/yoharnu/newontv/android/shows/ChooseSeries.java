@@ -7,22 +7,23 @@ import java.util.concurrent.ExecutionException;
 import com.yoharnu.newontv.android.App;
 import com.yoharnu.newontv.android.DownloadFilesTask;
 import com.yoharnu.newontv.android.R;
+import com.yoharnu.newontv.android.Settings;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
-import android.text.method.ScrollingMovementMethod;
 
 public class ChooseSeries extends Activity implements OnItemSelectedListener {
 	Series s;
@@ -42,7 +43,7 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 
 	protected void onStart() {
 		super.onStart();
-		
+
 		s.task.execute(s.url, s.file);
 		try {
 			s.task.get();
@@ -55,14 +56,29 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 		File temp = new File(s.file);
 		Series.parseSearch(temp);
 		temp.delete();
-		
+		if (PreferenceManager.getDefaultSharedPreferences(App.getContext())
+				.getBoolean("only_show_running", false)) {
+			LinkedList<Series> tempOptions = new LinkedList<Series>();
+			for (int i = 0; i < Series.options.size(); i++) {
+				tempOptions.add(Series.options.get(i));
+			}
+			Series.options.clear();
+			for (int i = 0; i < tempOptions.size(); i++) {
+				Series tempSeries = new Series(
+						tempOptions.get(i).getSeriesId(), Series.ID);
+				if (tempSeries.getStatus().equals("Continuing")) {
+					Series.options.add(tempSeries);
+				}
+			}
+		}
+
 		Spinner spinner = (Spinner) findViewById(R.id.spins);
 		LinkedList<String> optionsNames = new LinkedList<String>();
 		for (int i = 0; i < Series.options.size(); i++) {
 			optionsNames.add(Series.options.get(i).getSeriesName());
 		}
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-				App.getContext(), android.R.layout.simple_list_item_1,
+				App.getContext(), android.R.layout.simple_dropdown_item_1line,
 				optionsNames);
 		spinner.setAdapter(adapter);
 		spinner.setOnItemSelectedListener(this);
@@ -88,8 +104,15 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
+		case R.id.menu_add_remove:
+			startActivity(new Intent(this, EditShowsList.class));
+			return true;
+		case R.id.menu_settings:
+			startActivity(new Intent(this, Settings.class));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -104,34 +127,32 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 			}
 		}
 		TextView overview = (TextView) findViewById(R.id.spins_overview);
-		overview.setText("Overview: " + series.getOverview());
+		overview.setText("Status: " + series.getStatus() + "\nFirst Aired: "
+				+ series.getFirstAired() + "\nOverview: "
+				+ series.getOverview());
+		overview.setSingleLine(false);
+
 		overview.setVisibility(View.VISIBLE);
-		if (overview.getMovementMethod() != null)
-			overview.setMovementMethod(new ScrollingMovementMethod());
-		Button choose = (Button) findViewById(R.id.spins_choose);
-		choose.setText(App.getContext().getString(R.string.add));
-		choose.setVisibility(View.VISIBLE);
 	}
 
 	public void add(View view) {
 		Spinner spinner = (Spinner) findViewById(R.id.spins);
 		TextView t = (TextView) spinner.getSelectedView();
 		String text = t.getText().toString();
-		for(int i = 0; i < Series.options.size(); i++){
-			if(text.equals(Series.options.get(i).getSeriesName())){
+		for (int i = 0; i < Series.options.size(); i++) {
+			if (text.equals(Series.options.get(i).getSeriesName())) {
 				App.add(Series.options.get(i).getSeriesId());
 				this.finish();
 			}
 		}
 	}
-	
-	public void cancel(View view){
+
+	public void cancel(View view) {
 		this.finish();
 	}
 
 	@Override
 	public void onNothingSelected(AdapterView<?> parent) {
 	}
-	
 
 }

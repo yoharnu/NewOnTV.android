@@ -3,30 +3,13 @@ package com.yoharnu.newontv.android.shows;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import org.apache.commons.io.FileUtils;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import android.content.Intent;
-import android.util.Xml;
 
 import com.yoharnu.newontv.android.App;
 import com.yoharnu.newontv.android.DownloadFilesTask;
 
-@SuppressWarnings("unused")
 public class Series {
 	public static final int NAME = 0;
 	public static final int ID = 1;
@@ -39,6 +22,7 @@ public class Series {
 	private String airTime = null;
 	private String network = null;
 	private String banner;
+	private String status;
 	public LinkedList<Episode> episodes;
 	File cache = null;
 	public static LinkedList<Series> options = null;
@@ -135,9 +119,6 @@ public class Series {
 			e.printStackTrace();
 		}
 		parse();
-		App.shows.add(this);
-		App.save();
-
 	}
 
 	public String getSeriesName() {
@@ -178,6 +159,8 @@ public class Series {
 					airTime = data;
 				} else if (tag.equals("Network")) {
 					network = data;
+				} else if (tag.equals("Status")) {
+					status = data;
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -192,4 +175,25 @@ public class Series {
 	public String getNetwork() {
 		return network;
 	}
+
+	public String getFirstAired() {
+		return firstAired;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+
+	public String getImdb_id() {
+		return imdb_id;
+	}
+
+	public String getBanner() {
+		return banner;
+	}
+
 }

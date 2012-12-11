@@ -11,6 +11,7 @@ import com.yoharnu.newontv.android.shows.Series;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 
 public class App extends Application {
 
@@ -20,6 +21,8 @@ public class App extends Application {
 	protected static Context context;
 	public static SharedPreferences preferences;
 	public static LinkedList<Series> shows;
+	private static boolean mExternalStorageAvailable = false;
+	private static boolean mExternalStorageWriteable = false;
 
 	public void onCreate() {
 		super.onCreate();
@@ -28,6 +31,7 @@ public class App extends Application {
 		preferences = context.getSharedPreferences(
 				getString(R.string.pref_default), Context.MODE_PRIVATE);
 		shows = new LinkedList<Series>();
+		checkPermissions();
 		load();
 	}
 
@@ -43,7 +47,8 @@ public class App extends Application {
 			}
 		}
 		if (!present) {
-			new Series(seriesId, Series.ID);
+			shows.add(new Series(seriesId, Series.ID));
+			save();
 		}
 	}
 
@@ -63,7 +68,7 @@ public class App extends Application {
 			Scanner s = new Scanner(new File(context.getFilesDir(), "shows"));
 			shows.clear();
 			while (s.hasNextLine()) {
-				new Series(s.nextLine(), Series.ID);
+				add(s.nextLine());
 			}
 			if (s != null) {
 				s.close();
@@ -84,8 +89,34 @@ public class App extends Application {
 				iHole--;
 			}
 			App.shows.set(iHole, temp);
-
 		}
+	}
 
+	protected void checkPermissions() {
+		String state = Environment.getExternalStorageState();
+
+		if (Environment.MEDIA_MOUNTED.equals(state)) {
+			// We can read and write the media
+			mExternalStorageAvailable = true;
+			mExternalStorageWriteable = true;
+		} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+			// We can only read the media
+			mExternalStorageAvailable = true;
+			mExternalStorageWriteable = false;
+		} else {
+			// Something else is wrong. It may be one of many other states, but
+			// all we need
+			// to know is we can neither read nor write
+			mExternalStorageAvailable = false;
+			mExternalStorageWriteable = false;
+		}
+	}
+
+	public static boolean isExternalStorageWriteable() {
+		return mExternalStorageWriteable;
+	}
+
+	public static boolean isExternalStorageAvailable() {
+		return mExternalStorageAvailable;
 	}
 }

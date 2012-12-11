@@ -8,20 +8,23 @@
 
     <Spinner
         android:id="@+id/spins"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true" />
 
-    <TextView
-        android:id="@+id/spins_overview"
+    <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@+id/spins_choose"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@id/spins"
-        android:scrollbars="vertical"
-        android:visibility="gone" />
+        android:layout_below="@id/spins" >
+
+        <TextView
+            android:id="@+id/spins_overview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible" />
+    </ScrollView>
 
     <Button
         android:id="@id/spins_choose"
@@ -30,6 +33,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:onClick="add"
+        android:text="@string/add"
         android:visibility="visible" />
 
     <Button

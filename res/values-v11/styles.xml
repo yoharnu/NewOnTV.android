@@ -2,10 +2,19 @@
 
     <!--
         Base application theme for API 11+. This theme completely replaces
-        AppBaseTheme from res/values/styles.xml on API 11+ devices.
+        AppBaseTheme from res/values/styles.xml on API 11+ devices.
     -->
-    <style name="AppBaseTheme" parent="android:Theme.Holo">
+    <style name="AppBaseTheme" parent="android:Theme.Black">
         <!-- API 11 theme customizations can go here. -->
     </style>
+
+    <style name="MyTheme">
+        <item name="android:spinnerStyle">@style/StandardSpinner</item>
+    </style>
+
+    <style name="StandardSpinner" parent="@android:style/Widget.Spinner">
+        <item name="android:background">@color/Black</item>
+    </style>
+    <color name="Black">#000000</color>
 
 </resources>
