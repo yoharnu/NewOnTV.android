@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 import com.yoharnu.newontv.android.shows.Series;
 
@@ -12,6 +13,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 
 public class App extends Application {
 
@@ -28,8 +30,7 @@ public class App extends Application {
 		super.onCreate();
 
 		context = getApplicationContext();
-		preferences = context.getSharedPreferences(
-				getString(R.string.pref_default), Context.MODE_PRIVATE);
+		preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		shows = new LinkedList<Series>();
 		checkPermissions();
 		load();
@@ -40,6 +41,15 @@ public class App extends Application {
 	}
 
 	public static void add(String seriesId) {
+		Series temp = new Series(seriesId, Series.ID);
+		try {
+			if (temp.task != null)
+				temp.task.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
 		boolean present = false;
 		for (int i = 0; i < shows.size(); i++) {
 			if (shows.get(i).getSeriesId().equals(seriesId)) {
@@ -47,7 +57,20 @@ public class App extends Application {
 			}
 		}
 		if (!present) {
-			shows.add(new Series(seriesId, Series.ID));
+			shows.add(temp);
+			save();
+		}
+	}
+
+	public static void add(Series series) {
+		boolean present = false;
+		for (int i = 0; i < shows.size(); i++) {
+			if (shows.get(i).getSeriesId().equals(series.getSeriesId())) {
+				present = true;
+			}
+		}
+		if (!present) {
+			shows.add(series);
 			save();
 		}
 	}

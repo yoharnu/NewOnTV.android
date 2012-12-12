@@ -26,7 +26,7 @@ public class Series {
 	public LinkedList<Episode> episodes;
 	File cache = null;
 	public static LinkedList<Series> options = null;
-	public DownloadFilesTask task;
+	public DownloadFilesTask task = null;
 	public String url;
 	public String file;
 
@@ -96,7 +96,7 @@ public class Series {
 
 	private void setupSeriesById(final String id) {
 		this.seriesid = id;
-		file = App.getContext().getCacheDir().getAbsolutePath() + "/" + id;
+		file = App.getContext().getCacheDir().getAbsolutePath() + "/series/" + id;
 		cache = new File(file);
 		if (!cache.exists()) {
 			try {

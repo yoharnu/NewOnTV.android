@@ -11,7 +11,6 @@ import com.yoharnu.newontv.android.Settings;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -56,8 +55,7 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 		File temp = new File(s.file);
 		Series.parseSearch(temp);
 		temp.delete();
-		if (PreferenceManager.getDefaultSharedPreferences(App.getContext())
-				.getBoolean("only_show_running", false)) {
+		if (App.preferences.getBoolean("only_show_running", false)) {
 			LinkedList<Series> tempOptions = new LinkedList<Series>();
 			for (int i = 0; i < Series.options.size(); i++) {
 				tempOptions.add(Series.options.get(i));
@@ -127,9 +125,8 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 			}
 		}
 		TextView overview = (TextView) findViewById(R.id.spins_overview);
-		overview.setText("Status: " + series.getStatus() + "\nFirst Aired: "
-				+ series.getFirstAired() + "\nOverview: "
-				+ series.getOverview());
+		overview.setText("First Aired: " + series.getFirstAired()
+				+ "\nOverview: " + series.getOverview());
 		overview.setSingleLine(false);
 
 		overview.setVisibility(View.VISIBLE);
@@ -142,9 +139,16 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 		for (int i = 0; i < Series.options.size(); i++) {
 			if (text.equals(Series.options.get(i).getSeriesName())) {
 				App.add(Series.options.get(i).getSeriesId());
-				this.finish();
+			} else {
+				for (int j = 0; j < App.shows.size(); j++) {
+					if (!Series.options.get(i).getSeriesId()
+							.equals(App.shows.get(j).getSeriesId())) {
+						Series.options.get(i).cache.delete();
+					}
+				}
 			}
 		}
+		this.finish();
 	}
 
 	public void cancel(View view) {
