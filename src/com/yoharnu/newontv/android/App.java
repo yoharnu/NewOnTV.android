@@ -47,8 +47,10 @@ public class App extends Application {
 				temp.task.get();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			return;
 		} catch (ExecutionException e) {
 			e.printStackTrace();
+			return;
 		}
 		boolean present = false;
 		for (int i = 0; i < shows.size(); i++) {

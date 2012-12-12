@@ -142,7 +142,8 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 			} else {
 				for (int j = 0; j < App.shows.size(); j++) {
 					if (!Series.options.get(i).getSeriesId()
-							.equals(App.shows.get(j).getSeriesId())) {
+							.equals(App.shows.get(j).getSeriesId())
+							&& Series.options.get(i).cache != null) {
 						Series.options.get(i).cache.delete();
 					}
 				}
