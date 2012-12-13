@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 import com.yoharnu.newontv.android.App;
 import com.yoharnu.newontv.android.DownloadFilesTask;
@@ -26,7 +25,7 @@ public class Series {
 	public LinkedList<Episode> episodes;
 	File cache = null;
 	public static LinkedList<Series> options = null;
-	public DownloadFilesTask task = null;
+	public Thread task;
 	public String url;
 	public String file;
 
@@ -106,16 +105,19 @@ public class Series {
 			}
 			url = App.MIRRORPATH + "/api/" + App.API_KEY + "/series/" + id
 					+ "/" + App.LANGUAGE + ".xml";
-			task = new DownloadFilesTask();
-			task.execute(url, file);
+			task = new Thread(new Runnable(){
+
+				@Override
+				public void run() {
+					new DownloadFilesTask(url, file);
+				}});
+			task.start();
 		}
 		try {
 			if (task != null) {
-				task.get();
+				task.join();
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
 		parse();

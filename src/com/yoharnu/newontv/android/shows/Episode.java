@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 import android.widget.TextView;
 
@@ -18,25 +17,25 @@ public class Episode {
 	private String overview;
 	private String epName;
 	public Series parent;
-	public DownloadFilesTask task;
+	public Thread task;
 	private File cache = null;
 
 	public Episode(Series series) {
 		parent = series;
 		String seriesId = series.getSeriesId();
-		GregorianCalendar cal = new GregorianCalendar();
-		String today = Integer.toString(cal.get(GregorianCalendar.YEAR));
-		if (cal.get(GregorianCalendar.MONTH) + 1 < 10)
+		//GregorianCalendar cal = new GregorianCalendar();
+		String today = Integer.toString(App.today.get(GregorianCalendar.YEAR));
+		if (App.today.get(GregorianCalendar.MONTH) + 1 < 10)
 			today += "0";
-		today += Integer.toString(cal.get(GregorianCalendar.MONTH) + 1);
-		if (cal.get(GregorianCalendar.DATE) < 10)
+		today += Integer.toString(App.today.get(GregorianCalendar.MONTH) + 1);
+		if (App.today.get(GregorianCalendar.DATE) < 10)
 			today += "0";
-		today += Integer.toString(cal.get(GregorianCalendar.DATE));
+		today += Integer.toString(App.today.get(GregorianCalendar.DATE));
 		File dir = new File(App.getContext().getCacheDir(), "episodes");
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
-		String file = dir.getAbsolutePath() + "/" + today + "/" + seriesId;
+		final String file = dir.getAbsolutePath() + "/" + today + "/" + seriesId;
 		cache = new File(file);
 		if (!cache.exists()) {
 			try {
@@ -44,17 +43,20 @@ public class Episode {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			String url = App.MIRRORPATH
+			final String url = App.MIRRORPATH
 					+ "/api/GetEpisodeByAirDate.php?apikey=" + App.API_KEY
 					+ "&seriesid=" + seriesId + "&airdate=" + today
 					+ "&language=" + App.LANGUAGE + ".xml";
-			task = new DownloadFilesTask();
-			task.execute(url, file);
+			task = new Thread(new Runnable(){
+
+				@Override
+				public void run() {
+					new DownloadFilesTask(url, file);					
+				}});
+			task.start();
 			try {
-				task.get();
+				task.join();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
 				e.printStackTrace();
 			}
 		}

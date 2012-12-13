@@ -2,7 +2,7 @@ package com.yoharnu.newontv.android;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+import java.util.GregorianCalendar;
 
 import org.apache.commons.io.FileUtils;
 
@@ -11,231 +11,391 @@ import com.yoharnu.newontv.android.shows.Episode;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class NewOnTV extends Activity {
+	ProgressDialog pd;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
+		// setContentView(R.layout.loading_screen);
+	}
 
+	protected void onResume() {
+		super.onResume();
 		refresh();
-
 	}
 
 	private void refresh() {
-		for (int i = 0; i < App.shows.size(); i++) {
-			new Episode(App.shows.get(i));
-		}
-		LinearLayout ll = (LinearLayout) this.findViewById(R.id.dynamicLayout);
-		ll.removeAllViews();
-		boolean noShows = true;
+		final ProgressDialog pd = new ProgressDialog(this);
+		pd.setMessage("Loading...");
+		pd.setIndeterminate(true);
+		pd.show();
+		new Thread(new Runnable() {
+			public void run() {
 
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("8:00 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("8:00PM")
-						|| App.shows.get(i).getTime().matches("20:00")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
-						}
+				final Button date = (Button) findViewById(R.id.changeDate);
+				runOnUiThread(new Runnable() {
+					public void run() {
+						String today = "";
+						if (App.today.get(GregorianCalendar.MONTH) < 9)
+							today += "0";
+						today += Integer.toString(App.today
+								.get(GregorianCalendar.MONTH) + 1) + "-";
+
+						if (App.today.get(GregorianCalendar.DATE) < 10)
+							today += "0";
+						today += Integer.toString(App.today
+								.get(GregorianCalendar.DATE)) + "-";
+						today += Integer.toString(App.today
+								.get(GregorianCalendar.YEAR));
+						date.setText(today);
 					}
+				});
+				for (int i = 0; i < App.shows.size(); i++) {
+					new Episode(App.shows.get(i));
 				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("8:30 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("8:30PM")
-						|| App.shows.get(i).getTime().matches("20:30")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
-						}
+				final LinearLayout ll = (LinearLayout) findViewById(R.id.dynamicLayout);
+				ll.post(new Runnable() {
+					public void run() {
+						ll.removeAllViews();
 					}
-				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("9:00 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("9:00PM")
-						|| App.shows.get(i).getTime().matches("21:00")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
+				});
+				boolean noShows = true;
+
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("8:00 PM");
+
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
 						}
-					}
-				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("9:30 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("9:30PM")
-						|| App.shows.get(i).getTime().matches("21:30")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("8:00PM")
+								|| App.shows.get(i).getTime().matches("20:00")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
 						}
-					}
 				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("10:00 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("10:00PM")
-						|| App.shows.get(i).getTime().matches("22:00")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("8:30 PM");
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
 						}
-					}
-				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("10:30 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("10:30PM")
-						|| App.shows.get(i).getTime().matches("22:30")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("8:30PM")
+								|| App.shows.get(i).getTime().matches("20:30")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
 						}
-					}
 				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("11:00 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("11:00PM")
-						|| App.shows.get(i).getTime().matches("23:00")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("9:00 PM");
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
 						}
-					}
-				}
-		}
-		{
-			TextView time = new TextView(App.getContext());
-			time.setVisibility(View.GONE);
-			time.setText("11:30 PM");
-			ll.addView(time);
-			for (int i = 0; i < App.shows.size(); i++)
-				if (App.shows.get(i).getTime().replaceAll(" ", "")
-						.equalsIgnoreCase("11:30PM")
-						|| App.shows.get(i).getTime().matches("23:30")) {
-					for (int j = 0; j < App.shows.get(i).episodes.size(); j++) {
-						time.setVisibility(View.VISIBLE);
-						noShows = false;
-						try {
-							if (App.shows.get(i).episodes.get(j).task != null)
-								App.shows.get(i).episodes.get(j).task.get();
-							ll.addView(App.shows.get(i).episodes.get(j).print());
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						} catch (ExecutionException e) {
-							e.printStackTrace();
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("9:00PM")
+								|| App.shows.get(i).getTime().matches("21:00")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
 						}
-					}
 				}
-		}
-		if (noShows) {
-			TextView nothing = new TextView(App.getContext());
-			nothing.setText("There is nothing new on tonight.");
-			ll.addView(nothing);
-		}
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("9:30 PM");
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
+						}
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("9:30PM")
+								|| App.shows.get(i).getTime().matches("21:30")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+				}
+				{
+					final TextView time = new TextView(App.getContext());
+					runOnUiThread(new Runnable() {
+						public void run() {
+							time.setVisibility(View.GONE);
+							time.setText("10:00 PM");
+							ll.addView(time);
+						}
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("10:00PM")
+								|| App.shows.get(i).getTime().matches("22:00")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+				}
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("10:30 PM");
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
+						}
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("10:30PM")
+								|| App.shows.get(i).getTime().matches("22:30")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+				}
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("11:00 PM");
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
+						}
+					});
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("11:00PM")
+								|| App.shows.get(i).getTime().matches("23:00")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+				}
+				{
+					final TextView time = new TextView(App.getContext());
+					time.setVisibility(View.GONE);
+					time.setText("11:30 PM");
+					runOnUiThread(new Runnable() {
+						public void run() {
+							ll.addView(time);
+						}
+					});
+
+					for (int i = 0; i < App.shows.size(); i++)
+						if (App.shows.get(i).getTime().replaceAll(" ", "")
+								.equalsIgnoreCase("11:30PM")
+								|| App.shows.get(i).getTime().matches("23:30")) {
+							for (int j = 0; j < App.shows.get(i).episodes
+									.size(); j++) {
+								runOnUiThread(new Runnable() {
+									public void run() {
+										time.setVisibility(View.VISIBLE);
+									}
+								});
+								noShows = false;
+								try {
+									if (App.shows.get(i).episodes.get(j).task != null)
+										App.shows.get(i).episodes.get(j).task
+												.join();
+									final Episode temp = App.shows.get(i).episodes
+											.get(j);
+									runOnUiThread(new Runnable() {
+										public void run() {
+											ll.addView(temp.print());
+										}
+									});
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+
+				}
+				if (noShows) {
+					final TextView nothing = new TextView(App.getContext());
+					nothing.setText("There is nothing new on tonight.");
+					ll.post(new Runnable() {
+						public void run() {
+							ll.addView(nothing);
+						}
+					});
+				}
+				pd.dismiss();
+			}
+		}).start();
 	}
 
 	@Override
@@ -324,9 +484,29 @@ public class NewOnTV extends Activity {
 	}
 
 	public void onForceRefresh(View view) {
-		File dir = new File(getCacheDir(), "episodes");
-		dir.delete();
+		/*
+		 * File dir = new File(getCacheDir(), "episodes"); dir.delete();
+		 */
 		refresh();
 	}
 
+	public void onChangeDateClick(View view) {
+		DatePickerDialog dpd = new DatePickerDialog(this,
+				new DatePickerDialog.OnDateSetListener() {
+					@Override
+					public void onDateSet(DatePicker dp, int year, int month,
+							int day) {
+						App.today = new GregorianCalendar(year, month, day);
+					}
+				}, App.today.get(GregorianCalendar.YEAR),
+				App.today.get(GregorianCalendar.MONTH),
+				App.today.get(GregorianCalendar.DATE));
+		dpd.setOnDismissListener(new DialogInterface.OnDismissListener() {
+			@Override
+			public void onDismiss(DialogInterface arg0) {
+				refresh();
+			}
+		});
+		dpd.show();
+	}
 }

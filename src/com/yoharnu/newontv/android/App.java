@@ -3,9 +3,9 @@ package com.yoharnu.newontv.android;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 import com.yoharnu.newontv.android.shows.Series;
 
@@ -23,6 +23,7 @@ public class App extends Application {
 	protected static Context context;
 	public static SharedPreferences preferences;
 	public static LinkedList<Series> shows;
+	public static GregorianCalendar today;
 	private static boolean mExternalStorageAvailable = false;
 	private static boolean mExternalStorageWriteable = false;
 
@@ -32,6 +33,7 @@ public class App extends Application {
 		context = getApplicationContext();
 		preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		shows = new LinkedList<Series>();
+		today = new GregorianCalendar();
 		checkPermissions();
 		load();
 	}
@@ -44,11 +46,8 @@ public class App extends Application {
 		Series temp = new Series(seriesId, Series.ID);
 		try {
 			if (temp.task != null)
-				temp.task.get();
+				temp.task.join();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return;
-		} catch (ExecutionException e) {
 			e.printStackTrace();
 			return;
 		}
@@ -85,6 +84,7 @@ public class App extends Application {
 				out.println(shows.get(i).getSeriesId());
 			}
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
 	}
 

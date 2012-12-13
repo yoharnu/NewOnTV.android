@@ -2,7 +2,6 @@ package com.yoharnu.newontv.android.shows;
 
 import java.io.File;
 import java.util.LinkedList;
-import java.util.concurrent.ExecutionException;
 
 import com.yoharnu.newontv.android.App;
 import com.yoharnu.newontv.android.DownloadFilesTask;
@@ -13,18 +12,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 
-public class ChooseSeries extends Activity implements OnItemSelectedListener {
+public class ChooseSeries extends Activity {
 	Series s;
 
 	@SuppressLint("NewApi")
@@ -37,49 +36,94 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 		s = new Series(App.preferences.getString("search", ""), Series.NAME);
-		s.task = new DownloadFilesTask();
+		s.task = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				new DownloadFilesTask(s.url, s.file);
+			}
+		});
 	}
 
-	protected void onStart() {
-		super.onStart();
+	protected void onResume() {
+		super.onResume();
 
-		s.task.execute(s.url, s.file);
-		try {
-			s.task.get();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			e.printStackTrace();
-		}
-
-		File temp = new File(s.file);
-		Series.parseSearch(temp);
-		temp.delete();
-		if (App.preferences.getBoolean("only_show_running", false)) {
-			LinkedList<Series> tempOptions = new LinkedList<Series>();
-			for (int i = 0; i < Series.options.size(); i++) {
-				tempOptions.add(Series.options.get(i));
-			}
-			Series.options.clear();
-			for (int i = 0; i < tempOptions.size(); i++) {
-				Series tempSeries = new Series(
-						tempOptions.get(i).getSeriesId(), Series.ID);
-				if (tempSeries.getStatus().equals("Continuing")) {
-					Series.options.add(tempSeries);
+		final ProgressDialog pd = new ProgressDialog(this);
+		pd.setMessage("Loading...");
+		pd.setIndeterminate(true);
+		pd.show();
+		new Thread(new Runnable() {
+			public void run() {
+				s.task.start();
+				File temp = new File(s.file);
+				try {
+					s.task.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-			}
-		}
+				Series.parseSearch(temp);
+				temp.delete();
+				if (App.preferences.getBoolean("only_show_running", false)) {
+					LinkedList<Series> tempOptions = new LinkedList<Series>();
+					for (int i = 0; i < Series.options.size(); i++) {
+						tempOptions.add(Series.options.get(i));
+					}
+					Series.options.clear();
+					for (int i = 0; i < tempOptions.size(); i++) {
+						Series tempSeries = new Series(tempOptions.get(i)
+								.getSeriesId(), Series.ID);
+						if (tempSeries.getStatus().equals("Continuing")) {
+							Series.options.add(tempSeries);
+						}
+					}
+				}
 
-		Spinner spinner = (Spinner) findViewById(R.id.spins);
-		LinkedList<String> optionsNames = new LinkedList<String>();
-		for (int i = 0; i < Series.options.size(); i++) {
-			optionsNames.add(Series.options.get(i).getSeriesName());
-		}
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-				App.getContext(), android.R.layout.simple_dropdown_item_1line,
-				optionsNames);
-		spinner.setAdapter(adapter);
-		spinner.setOnItemSelectedListener(this);
+				LinkedList<String> optionsNames = new LinkedList<String>();
+				for (int i = 0; i < Series.options.size(); i++) {
+					optionsNames.add(Series.options.get(i).getSeriesName());
+				}
+				final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+						App.getContext(),
+						android.R.layout.simple_dropdown_item_1line,
+						optionsNames);
+				runOnUiThread(new Runnable() {
+					public void run() {
+						Spinner spinner = (Spinner) findViewById(R.id.spins);
+						spinner.setAdapter(adapter);
+						spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+							@Override
+							public void onItemSelected(AdapterView<?> parent,
+									View view, int pos, long id) {
+								String name = (String) parent
+										.getItemAtPosition(pos);
+								Series series = null;
+								for (int i = 0; i < Series.options.size(); i++) {
+									if (name.equals(Series.options.get(i)
+											.getSeriesName())) {
+										series = Series.options.get(i);
+										break;
+									}
+								}
+								TextView overview = (TextView) findViewById(R.id.spins_overview);
+								overview.setText("First Aired: "
+										+ series.getFirstAired()
+										+ "\nOverview: " + series.getOverview());
+								overview.setSingleLine(false);
+
+								overview.setVisibility(View.VISIBLE);
+							}
+
+							@Override
+							public void onNothingSelected(AdapterView<?> arg0) {
+							}
+						});
+					}
+				});
+				pd.dismiss();
+			}
+		}).start();
+
 	}
 
 	@Override
@@ -113,51 +157,38 @@ public class ChooseSeries extends Activity implements OnItemSelectedListener {
 		}
 	}
 
-	@Override
-	public void onItemSelected(AdapterView<?> parent, View view, int pos,
-			long id) {
-		String name = (String) parent.getItemAtPosition(pos);
-		Series series = null;
-		for (int i = 0; i < Series.options.size(); i++) {
-			if (name.equals(Series.options.get(i).getSeriesName())) {
-				series = Series.options.get(i);
-				break;
-			}
-		}
-		TextView overview = (TextView) findViewById(R.id.spins_overview);
-		overview.setText("First Aired: " + series.getFirstAired()
-				+ "\nOverview: " + series.getOverview());
-		overview.setSingleLine(false);
-
-		overview.setVisibility(View.VISIBLE);
-	}
-
 	public void add(View view) {
-		Spinner spinner = (Spinner) findViewById(R.id.spins);
-		TextView t = (TextView) spinner.getSelectedView();
-		String text = t.getText().toString();
-		for (int i = 0; i < Series.options.size(); i++) {
-			if (text.equals(Series.options.get(i).getSeriesName())) {
-				App.add(Series.options.get(i).getSeriesId());
-			} else {
-				for (int j = 0; j < App.shows.size(); j++) {
-					if (!Series.options.get(i).getSeriesId()
-							.equals(App.shows.get(j).getSeriesId())
-							&& Series.options.get(i).cache != null) {
-						Series.options.get(i).cache.delete();
+		final ProgressDialog pd = new ProgressDialog(this);
+		pd.setMessage("Loading...");
+		pd.setIndeterminate(true);
+		pd.show();
+		final Activity temp = this;
+		new Thread(new Runnable() {
+			public void run() {
+				Spinner spinner = (Spinner) findViewById(R.id.spins);
+				TextView t = (TextView) spinner.getSelectedView();
+				String text = t.getText().toString();
+				for (int i = 0; i < Series.options.size(); i++) {
+					if (text.equals(Series.options.get(i).getSeriesName())) {
+						App.add(Series.options.get(i).getSeriesId());
+					} else {
+						for (int j = 0; j < App.shows.size(); j++) {
+							if (!Series.options.get(i).getSeriesId()
+									.equals(App.shows.get(j).getSeriesId())
+									&& Series.options.get(i).cache != null) {
+								Series.options.get(i).cache.delete();
+							}
+						}
 					}
 				}
+				pd.dismiss();
+				temp.finish();
 			}
-		}
-		this.finish();
+		}).start();
 	}
 
 	public void cancel(View view) {
 		this.finish();
-	}
-
-	@Override
-	public void onNothingSelected(AdapterView<?> parent) {
 	}
 
 }

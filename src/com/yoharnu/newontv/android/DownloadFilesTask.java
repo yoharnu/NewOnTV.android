@@ -7,23 +7,34 @@ import java.net.URL;
 
 import org.apache.commons.io.FileUtils;
 
-import android.os.AsyncTask;
+/*public class DownloadFilesTask extends AsyncTask<String, Void, Boolean> {
 
-public class DownloadFilesTask extends AsyncTask<String, Void, Boolean> {
+ @Override
+ public Boolean doInBackground(final String... params) {
+ try {
+ FileUtils.copyURLToFile(new URL((String) params[0]), new File(
+ (String) params[1]));
+ } catch (MalformedURLException e) {
+ e.printStackTrace();
+ return false;
+ } catch (IOException e) {
+ e.printStackTrace();
+ return false;
+ }
+ return true;
+ }
 
-	@Override
-	public Boolean doInBackground(final String... params) {
+ }*/
+
+public class DownloadFilesTask {
+	public DownloadFilesTask(String url, String file) {
 		try {
-			FileUtils.copyURLToFile(new URL((String) params[0]), new File(
-					(String) params[1]));
+			FileUtils.copyURLToFile(new URL(url), new File(file));
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
-			return false;
 		} catch (IOException e) {
 			e.printStackTrace();
-			return false;
 		}
-		return true;
 	}
 
 }

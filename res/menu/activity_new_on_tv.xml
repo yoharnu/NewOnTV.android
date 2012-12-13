@@ -2,14 +2,12 @@
 
     <item
         android:id="@+id/menu_settings"
-        android:onClick="onOptionsItemSelected"
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/menu_settings"/>
     <item
         android:id="@+id/menu_add_remove"
         android:enabled="true"
-        android:onClick="onOptionsItemSelected"
         android:orderInCategory="1"
         android:title="@string/title_activity_edit_shows_list"
         android:titleCondensed="@string/editList"
@@ -17,7 +15,6 @@
     <item
         android:id="@+id/menu_export"
         android:enabled="true"
-        android:onClick="onOptionsItemSelected"
         android:orderInCategory="3"
         android:title="@string/settings_export"
         android:titleCondensed="@string/settings_export_short"
@@ -25,7 +22,6 @@
     <item
         android:id="@+id/menu_import"
         android:enabled="true"
-        android:onClick="onOptionsItemSelected"
         android:orderInCategory="2"
         android:title="@string/settings_import"
         android:titleCondensed="@string/settings_import_short"

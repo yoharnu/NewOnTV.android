@@ -6,7 +6,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
+
     <uses-sdk
         android:minSdkVersion="10"
         android:targetSdkVersion="17" />
@@ -28,32 +28,44 @@
         </activity>
         <activity
             android:name="com.yoharnu.newontv.android.shows.EditShowsList"
-            android:label="@string/title_activity_edit_shows_list">
+            android:label="@string/title_activity_edit_shows_list" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.android.NewOnTV" />
         </activity>
         <activity
             android:name="com.yoharnu.newontv.android.shows.ChooseSeries"
-            android:label="@string/title_activity_choose_series">
+            android:label="@string/title_activity_choose_series" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.android.shows.EditShowsList" />
         </activity>
         <activity
             android:name="com.yoharnu.newontv.android.shows.DeleteShow"
-            android:label="@string/title_activity_delete_show">
+            android:label="@string/title_activity_delete_show" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.android.shows.EditShowsList" />
         </activity>
         <activity
             android:name="com.yoharnu.newontv.android.Settings"
-            android:label="@string/title_activity_settings">
+            android:label="@string/title_activity_settings" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.android.NewOnTV" />
         </activity>
+
+        <receiver android:name=".notifications.AlarmReceiver" >
+            <intent-filter>
+                <action android:name="com.yoharnu.newontv.android.App" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".notifications.AlarmSetter" >
+        <intent-filter>
+            <action
+                android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+    </receiver>
     </application>
 
 </manifest>
