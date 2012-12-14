@@ -37,13 +37,69 @@ public class NewOnTV extends Activity {
 
 	protected void onResume() {
 		super.onResume();
+		App.today = new GregorianCalendar();
+		cleanUpCache();
 		refresh();
+	}
+
+	private void cleanUpCache() {
+		GregorianCalendar today = new GregorianCalendar();
+		today.add(GregorianCalendar.DATE, -1);
+		String todayString = Integer
+				.toString(today.get(GregorianCalendar.YEAR));
+		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
+		if (today.get(GregorianCalendar.DATE) < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
+		String newString = Integer.toString(App.today
+				.get(GregorianCalendar.YEAR));
+		if (App.today.get(GregorianCalendar.MONTH) + 1 < 10)
+			newString += "0";
+		newString += Integer
+				.toString(App.today.get(GregorianCalendar.MONTH) + 1);
+		if (App.today.get(GregorianCalendar.DATE) < 10)
+			newString += "0";
+		newString += Integer.toString(App.today.get(GregorianCalendar.DATE));
+		File[] files = new File(getCacheDir(), "episodes").listFiles();
+		if (files != null)
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].getName().compareTo(todayString) < 0
+						&& !files[i].getName().equals(newString)) {
+					File[] temp = files[i].listFiles();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j].delete();
+					}
+				}
+			}
+		today = new GregorianCalendar();
+		today.add(GregorianCalendar.DATE, 1);
+		todayString = Integer.toString(today.get(GregorianCalendar.YEAR));
+		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
+		if (today.get(GregorianCalendar.DATE) < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
+		files = new File(getCacheDir(), "episodes").listFiles();
+		if (files != null)
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].getName().compareTo(todayString) > 0
+						&& !files[i].getName().equals(newString)) {
+					File[] temp = files[i].listFiles();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j].delete();
+					}
+				}
+			}
 	}
 
 	private void refresh() {
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);
+		pd.setCancelable(false);
 		pd.show();
 		new Thread(new Runnable() {
 			public void run() {
@@ -497,6 +553,7 @@ public class NewOnTV extends Activity {
 					public void onDateSet(DatePicker dp, int year, int month,
 							int day) {
 						App.today = new GregorianCalendar(year, month, day);
+						cleanUpCache();
 					}
 				}, App.today.get(GregorianCalendar.YEAR),
 				App.today.get(GregorianCalendar.MONTH),

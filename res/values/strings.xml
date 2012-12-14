@@ -24,9 +24,10 @@
     <string name="settings_runningShowsOnly">No Cancelled Shows</string>
     <string name="settings_runningShowsOnly_summaryOn">Only show currently running shows</string>
     <string name="settings_runningShowsOnly_summaryOff">All shows will be shown in search</string>
-    <string name="pref_category_import_export">Import/Export</string>
+    <string name="pref_category_manage_list">Manage List</string>
     <string name="pref_category_general">General</string>
     <string name="settings_export_short">Export&#8230;</string>
     <string name="settings_import_short">Import&#8230;</string>
+    <string name="settings_clear_list">Delete All Shows&#8230;</string>
 
 </resources>

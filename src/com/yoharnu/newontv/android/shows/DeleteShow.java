@@ -38,7 +38,7 @@ public class DeleteShow extends Activity implements OnItemSelectedListener {
 			showNames.add(App.shows.get(i).getSeriesName());
 		}
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-				App.getContext(), android.R.layout.simple_list_item_1,
+				App.getContext(), android.R.layout.simple_dropdown_item_1line,
 				showNames);
 		spinner.setAdapter(adapter);
 		spinner.setOnItemSelectedListener(this);

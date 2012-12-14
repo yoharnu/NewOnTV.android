@@ -4,14 +4,24 @@
     android:layout_height="wrap_content" >
 
     <PreferenceCategory android:title="@string/pref_category_general" >
-        
         <CheckBoxPreference
-            android:key="only_show_running"
-            android:title="@string/settings_runningShowsOnly"
-            android:summaryOn="@string/settings_runningShowsOnly_summaryOn"
-            android:summaryOff="@string/settings_runningShowsOnly_summaryOff"
             android:defaultValue="false"
-            android:persistent="true" />
+            android:key="only_show_running"
+            android:persistent="true"
+            android:summaryOff="@string/settings_runningShowsOnly_summaryOff"
+            android:summaryOn="@string/settings_runningShowsOnly_summaryOn"
+            android:title="@string/settings_runningShowsOnly" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_category_manage_list" >
+        <Preference
+            android:key="import"
+            android:title="@string/settings_import_short" />
+        <Preference
+            android:key="export"
+            android:title="@string/settings_export_short" />
+        <Preference
+            android:key="clear_list"
+            android:title="@string/settings_clear_list" />
     </PreferenceCategory>
 
 </PreferenceScreen>

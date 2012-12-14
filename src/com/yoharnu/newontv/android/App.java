@@ -2,10 +2,13 @@ package com.yoharnu.newontv.android;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.Scanner;
+
+import org.apache.commons.io.FileUtils;
 
 import com.yoharnu.newontv.android.shows.Series;
 
@@ -78,17 +81,22 @@ public class App extends Application {
 
 	public static void save() {
 		try {
+			File temp = new File(context.getFilesDir(), "shows-temp");
 			PrintStream out = new PrintStream(new File(context.getFilesDir(),
-					"shows"));
+					"shows-temp"));
 			for (int i = 0; i < shows.size(); i++) {
 				out.println(shows.get(i).getSeriesId());
 			}
+			File save = new File(context.getFilesDir(), "shows");
+			FileUtils.copyFile(temp, save);
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static void load() {
+	static void load() {
 		try {
 			Scanner s = new Scanner(new File(context.getFilesDir(), "shows"));
 			shows.clear();

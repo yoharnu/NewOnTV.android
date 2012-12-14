@@ -51,6 +51,7 @@ public class ChooseSeries extends Activity {
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);
+		pd.setCancelable(false);
 		pd.show();
 		new Thread(new Runnable() {
 			public void run() {
@@ -161,6 +162,7 @@ public class ChooseSeries extends Activity {
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);
+		pd.setCancelable(false);
 		pd.show();
 		final Activity temp = this;
 		new Thread(new Runnable() {
