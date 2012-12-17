@@ -1,14 +1,10 @@
 package com.yoharnu.newontv.android;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.GregorianCalendar;
-
-import org.apache.commons.io.FileUtils;
 
 import com.yoharnu.newontv.android.shows.EditShowsList;
 import com.yoharnu.newontv.android.shows.Episode;
-import com.yoharnu.newontv.android.shows.Series;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -24,23 +20,30 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class NewOnTV extends Activity {
-	ProgressDialog pd;
+	ProgressDialog pd = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
-		// setContentView(R.layout.loading_screen);
 	}
 
 	protected void onResume() {
 		super.onResume();
+
 		App.today = new GregorianCalendar();
 		cleanUpCache();
 		refresh();
+	}
+
+	protected void onPause() {
+		super.onPause();
+
+		if (pd != null && pd.isShowing()) {
+			pd.dismiss();
+		}
 	}
 
 	private void cleanUpCache() {

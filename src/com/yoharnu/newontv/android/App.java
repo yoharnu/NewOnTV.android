@@ -89,6 +89,7 @@ public class App extends Application {
 			}
 			File save = new File(context.getFilesDir(), "shows");
 			FileUtils.copyFile(temp, save);
+			temp.delete();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
