@@ -12,6 +12,17 @@
             android:summaryOn="@string/settings_runningShowsOnly_summaryOn"
             android:title="@string/settings_runningShowsOnly" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Dropbox Settings" >
+        <Preference
+            android:key="activate_Dropbox"
+            android:title="Link with Dropbox" />
+        <Preference
+            android:key="backup_to_Dropbox"
+            android:title="Backup to Dropbox" />
+        <Preference
+            android:key="restore_from_Dropbox"
+            android:title="Restore from Dropbox" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_category_manage_list" >
         <Preference
             android:key="import"

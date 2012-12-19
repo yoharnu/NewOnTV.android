@@ -1,5 +1,6 @@
 package com.yoharnu.newontv.android.shows;
 
+import java.io.File;
 import java.util.LinkedList;
 
 import com.yoharnu.newontv.android.App;
@@ -92,7 +93,10 @@ public class DeleteShow extends Activity implements OnItemSelectedListener {
 	}
 
 	public void delete(View view) {
+		new File(this.getCacheDir(), "/series/" + selected.getSeriesId())
+				.delete();
 		App.shows.remove(selected);
+		App.preferences.edit().remove("db-shows-rev").commit();
 		App.save();
 		this.finish();
 	}

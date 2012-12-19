@@ -1,7 +1,9 @@
 package com.yoharnu.newontv.android;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.GregorianCalendar;
@@ -10,13 +12,26 @@ import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
 
+import com.dropbox.client2.DropboxAPI;
+import com.dropbox.client2.DropboxAPI.DropboxFileInfo;
+import com.dropbox.client2.DropboxAPI.Entry;
+import com.dropbox.client2.ProgressListener;
+import com.dropbox.client2.android.AndroidAuthSession;
+import com.dropbox.client2.exception.DropboxException;
+import com.dropbox.client2.exception.DropboxUnlinkedException;
+import com.dropbox.client2.session.AccessTokenPair;
+import com.dropbox.client2.session.AppKeyPair;
+import com.dropbox.client2.session.Session.AccessType;
 import com.yoharnu.newontv.android.shows.Series;
 
+import android.app.Activity;
 import android.app.Application;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 public class App extends Application {
 
@@ -29,6 +44,10 @@ public class App extends Application {
 	public static GregorianCalendar today;
 	private static boolean mExternalStorageAvailable = false;
 	private static boolean mExternalStorageWriteable = false;
+	final static private String APP_KEY = "dik24sgjbrpvnqm";
+	final static private String APP_SECRET = "ijw8q9xd90lo7h2";
+	final static private AccessType ACCESS_TYPE = AccessType.APP_FOLDER;
+	static DropboxAPI<AndroidAuthSession> mDBApi;
 
 	public void onCreate() {
 		super.onCreate();
@@ -37,8 +56,22 @@ public class App extends Application {
 		preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		shows = new LinkedList<Series>();
 		today = new GregorianCalendar();
+		AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
+		AndroidAuthSession session = new AndroidAuthSession(appKeys,
+				ACCESS_TYPE);
+		mDBApi = new DropboxAPI<AndroidAuthSession>(session);
+		AccessTokenPair access = getStoredKeys();
+		if (access != null)
+			mDBApi.getSession().setAccessTokenPair(access);
 		checkPermissions();
-		load();
+	}
+
+	private AccessTokenPair getStoredKeys() {
+		String key = preferences.getString("db-key", null);
+		String secret = preferences.getString("db-secret", null);
+		if (key == null || secret == null)
+			return null;
+		return new AccessTokenPair(key, secret);
 	}
 
 	public static Context getContext() {
@@ -62,7 +95,6 @@ public class App extends Application {
 		}
 		if (!present) {
 			shows.add(temp);
-			save();
 		}
 	}
 
@@ -71,15 +103,19 @@ public class App extends Application {
 		for (int i = 0; i < shows.size(); i++) {
 			if (shows.get(i).getSeriesId().equals(series.getSeriesId())) {
 				present = true;
+				break;
 			}
 		}
 		if (!present) {
 			shows.add(series);
-			save();
 		}
 	}
 
 	public static void save() {
+		saveToFile();
+	}
+
+	private static void saveToFile() {
 		try {
 			File temp = new File(context.getFilesDir(), "shows-temp");
 			PrintStream out = new PrintStream(new File(context.getFilesDir(),
@@ -97,7 +133,128 @@ public class App extends Application {
 		}
 	}
 
+	static void saveToDropbox() {
+		new Thread(new Runnable() {
+			public void run() {
+				FileInputStream inputStream = null;
+				try {
+					File local = new File(context.getFilesDir(), "shows");
+					if (!local.exists())
+						return;
+					Entry existingEntry = mDBApi.metadata("/shows", 1,
+							null, false, null);
+					Log.i("Dropbox", "The file's rev is now: "
+							+ existingEntry.rev);
+					inputStream = new FileInputStream(local);
+					if (existingEntry != null && !existingEntry.isDeleted) {
+						mDBApi.delete("/shows.txt");
+					}
+					Entry newEntry = mDBApi.putFile("/shows.txt", inputStream,
+							local.length(), null, null);
+					Log.i("DbExampleLog", "The uploaded file's rev is: "
+							+ newEntry.rev);
+					SharedPreferences.Editor e = preferences.edit();
+					e.putString("db-shows-rev", newEntry.rev);
+					e.commit();
+				} catch (DropboxUnlinkedException e) {
+					// User has unlinked, ask them to link again here.
+					Log.e("Dropbox", "User has unlinked.");
+				} catch (DropboxException e) {
+					Log.e("Dropbox", "Something went wrong while uploading.");
+					e.printStackTrace();
+				} catch (FileNotFoundException e) {
+					Log.e("Dropbox", "File not found.");
+				} finally {
+					if (inputStream != null) {
+						try {
+							inputStream.close();
+						} catch (IOException e) {
+						}
+					}
+				}
+			}
+		}).start();
+	}
+
 	static void load() {
+		loadFromFile();
+	}
+
+	static void loadFromDropbox(final Activity activity) {
+		final ProgressDialog pd = new ProgressDialog(activity);
+		pd.setCancelable(false);
+		pd.setTitle("Downloading from Dropbox...");
+		pd.setIndeterminate(false);
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				pd.show();
+			}
+		});
+		new Thread(new Runnable() {
+			public void run() {
+				FileOutputStream outputStream = null;
+				try {
+					Entry existingEntry = mDBApi.metadata("/shows", 1,
+							null, false, null);
+					Log.i("Dropbox", "The file's rev is now: "
+							+ existingEntry.rev);
+					if (existingEntry.rev.equals(preferences.getString(
+							"db-shows-rev", null))
+							|| existingEntry == null
+							|| existingEntry.isDeleted) {
+						activity.runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								pd.dismiss();
+							}
+						});
+						return;
+					}
+					File local = new File(App.context.getFilesDir(), "shows");
+					outputStream = new FileOutputStream(local);
+					DropboxFileInfo info = mDBApi.getFile("/shows", null,
+							outputStream, new ProgressListener() {
+								@Override
+								public void onProgress(final long bytes,
+										final long total) {
+									activity.runOnUiThread(new Runnable() {
+										public void run() {
+											pd.setMax((int) total);
+											pd.setProgress((int) bytes);
+											if (bytes == total) {
+												pd.dismiss();
+											}
+										}
+									});
+								}
+							});
+					Log.i("Dropbox", "The file's rev is: "
+							+ info.getMetadata().rev);
+					SharedPreferences.Editor e = preferences.edit();
+					e.putString("db-shows-rev", info.getMetadata().rev);
+					e.commit();
+				} catch (DropboxException e) {
+					Log.e("Dropbox", "Something went wrong while downloading.");
+				} catch (FileNotFoundException e) {
+					Log.e("Dropbox", "File not found.");
+				} finally {
+					if (outputStream != null) {
+						try {
+							outputStream.close();
+						} catch (IOException e) {
+						}
+					}
+					if (pd.isShowing())
+						pd.dismiss();
+					loadFromFile();
+				}
+			}
+		}).start();
+
+	}
+
+	protected static void loadFromFile() {
 		try {
 			Scanner s = new Scanner(new File(context.getFilesDir(), "shows"));
 			shows.clear();

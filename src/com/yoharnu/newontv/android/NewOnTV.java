@@ -28,6 +28,7 @@ public class NewOnTV extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
+		App.load();
 	}
 
 	protected void onResume() {

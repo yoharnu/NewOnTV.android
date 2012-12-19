@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 
+import com.dropbox.client2.session.AccessTokenPair;
 import com.yoharnu.newontv.android.shows.EditShowsList;
 
 import android.os.Build;
@@ -19,6 +20,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -98,7 +101,7 @@ public class Settings extends PreferenceActivity {
 						public void run() {
 							try {
 								FileUtils.copyFile(toImport, current);
-								App.load();
+								App.loadFromFile();
 								runOnUiThread(new Runnable() {
 									public void run() {
 										Toast toast = Toast.makeText(
@@ -138,17 +141,111 @@ public class Settings extends PreferenceActivity {
 									@Override
 									public void onClick(DialogInterface dialog,
 											int which) {
-										File shows = new File(App.getContext()
-												.getFilesDir(), "shows");
-										shows.delete();
+										new File(App.getContext()
+												.getFilesDir(), "shows").delete();
+										new File(App.getContext().getCacheDir(), "series").delete();
+										new File(App.getContext().getCacheDir(), "episodes").delete();
 										App.shows.clear();
+										App.preferences.edit()
+												.remove("db-shows-rev")
+												.commit();
+										App.save();
 									}
 								}).show();
 				return true;
 			}
 		});
+
+		final Preference activateDropbox = findPreference("activate_Dropbox");
+		final Preference backupToDropbox = findPreference("backup_to_Dropbox");
+		final Preference restoreFromDropbox = findPreference("restore_from_Dropbox");
+		activateDropbox
+				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+
+					@Override
+					public boolean onPreferenceClick(Preference preference) {
+						if (App.mDBApi.getSession().isLinked()) {
+							App.mDBApi.getSession().unlink();
+							App.preferences.edit().remove("db-key")
+									.remove("db-secret").remove("db-shows-rev")
+									.commit();
+							runOnUiThread(new Runnable() {
+								public void run() {
+									activateDropbox
+											.setTitle("Link with Dropbox");
+									backupToDropbox.setEnabled(false);
+									restoreFromDropbox.setEnabled(false);
+								}
+							});
+						} else {
+							App.mDBApi.getSession().startAuthentication(
+									Settings.this);
+						}
+						return true;
+					}
+				});
+		backupToDropbox
+				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+					@Override
+					public boolean onPreferenceClick(Preference arg0) {
+						App.saveToDropbox();
+						return true;
+					}
+				});
+		restoreFromDropbox
+		.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+			@Override
+			public boolean onPreferenceClick(Preference arg0) {
+				App.loadFromDropbox(Settings.this);
+				return true;
+			}
+		});
 	}
-	
+
+	protected void onResume() {
+		super.onResume();
+
+		if (App.mDBApi.getSession().authenticationSuccessful()) {
+			try {
+				// MANDATORY call to complete auth.
+				// Sets the access token on the session
+				App.mDBApi.getSession().finishAuthentication();
+
+				AccessTokenPair tokens = App.mDBApi.getSession()
+						.getAccessTokenPair();
+
+				// Provide your own storeKeys to persist the access token pair
+				// A typical way to store tokens is using SharedPreferences
+				storeKeys(tokens.key, tokens.secret);
+			} catch (IllegalStateException e) {
+				Log.i("DbAuthLog", "Error authenticating", e);
+			}
+		}
+
+		@SuppressWarnings("deprecation")
+		Preference activateDropbox = findPreference("activate_Dropbox");
+		@SuppressWarnings("deprecation")
+		Preference backupToDropbox = findPreference("backup_to_Dropbox");
+		@SuppressWarnings("deprecation")
+		Preference restoreFromDropbox = findPreference("restore_from_Dropbox");
+		if (App.mDBApi.getSession().isLinked()) {
+			activateDropbox.setTitle("Unlink Dropbox");
+			backupToDropbox.setEnabled(true);
+			restoreFromDropbox.setEnabled(true);
+		} else {
+			activateDropbox.setTitle("Link with Dropbox");
+			backupToDropbox.setEnabled(false);
+			restoreFromDropbox.setEnabled(false);
+		}
+	}
+
+	private void storeKeys(String key, String secret) {
+		SharedPreferences.Editor e = App.preferences.edit();
+		e.putString("db-key", key);
+		e.putString("db-secret", secret);
+		e.commit();
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

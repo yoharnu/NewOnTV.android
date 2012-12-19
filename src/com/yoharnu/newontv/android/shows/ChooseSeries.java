@@ -164,7 +164,6 @@ public class ChooseSeries extends Activity {
 		pd.setIndeterminate(true);
 		pd.setCancelable(false);
 		pd.show();
-		final Activity temp = this;
 		new Thread(new Runnable() {
 			public void run() {
 				Spinner spinner = (Spinner) findViewById(R.id.spins);
@@ -183,8 +182,10 @@ public class ChooseSeries extends Activity {
 						}
 					}
 				}
+				App.preferences.edit().remove("db-shows-rev").commit();
+				App.save();
 				pd.dismiss();
-				temp.finish();
+				ChooseSeries.this.finish();
 			}
 		}).start();
 	}
