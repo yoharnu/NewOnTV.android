@@ -3,11 +3,13 @@ package com.yoharnu.newontv.android.shows;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+import org.apache.commons.io.FileUtils;
+
 import com.yoharnu.newontv.android.App;
-import com.yoharnu.newontv.android.DownloadFilesTask;
 
 public class Series {
 	public static final int NAME = 0;
@@ -25,7 +27,6 @@ public class Series {
 	public LinkedList<Episode> episodes;
 	File cache = null;
 	public static LinkedList<Series> options = null;
-	public Thread task;
 	public String url;
 	public String file;
 
@@ -95,30 +96,18 @@ public class Series {
 
 	private void setupSeriesById(final String id) {
 		this.seriesid = id;
-		file = App.getContext().getCacheDir().getAbsolutePath() + "/series/" + id;
+		file = App.getContext().getCacheDir().getAbsolutePath() + "/series/"
+				+ id;
 		cache = new File(file);
 		if (!cache.exists()) {
 			try {
-				cache.createNewFile();
+				//cache.createNewFile();
+				url = App.MIRRORPATH + "/api/" + App.API_KEY + "/series/" + id
+						+ "/" + App.LANGUAGE + ".xml";
+				FileUtils.copyURLToFile(new URL(url), cache);
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
-			url = App.MIRRORPATH + "/api/" + App.API_KEY + "/series/" + id
-					+ "/" + App.LANGUAGE + ".xml";
-			task = new Thread(new Runnable(){
-
-				@Override
-				public void run() {
-					new DownloadFilesTask(url, file);
-				}});
-			task.start();
-		}
-		try {
-			if (task != null) {
-				task.join();
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 		parse();
 	}
@@ -166,7 +155,7 @@ public class Series {
 				}
 			}
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 

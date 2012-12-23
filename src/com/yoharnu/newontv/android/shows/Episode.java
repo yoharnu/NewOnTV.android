@@ -3,13 +3,15 @@ package com.yoharnu.newontv.android.shows;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.Scanner;
+
+import org.apache.commons.io.FileUtils;
 
 import android.widget.TextView;
 
 import com.yoharnu.newontv.android.App;
-import com.yoharnu.newontv.android.DownloadFilesTask;
 
 public class Episode {
 	private String season;
@@ -17,13 +19,11 @@ public class Episode {
 	private String overview;
 	private String epName;
 	public Series parent;
-	public Thread task;
 	private File cache = null;
 
 	public Episode(Series series) {
 		parent = series;
 		String seriesId = series.getSeriesId();
-		//GregorianCalendar cal = new GregorianCalendar();
 		String today = Integer.toString(App.today.get(GregorianCalendar.YEAR));
 		if (App.today.get(GregorianCalendar.MONTH) + 1 < 10)
 			today += "0";
@@ -35,28 +35,17 @@ public class Episode {
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
-		final String file = dir.getAbsolutePath() + "/" + today + "/" + seriesId;
+		final String file = dir.getAbsolutePath() + "/" + today + "/"
+				+ seriesId;
 		cache = new File(file);
 		if (!cache.exists()) {
 			try {
-				cache.createNewFile();
+				String url = App.MIRRORPATH
+						+ "/api/GetEpisodeByAirDate.php?apikey=" + App.API_KEY
+						+ "&seriesid=" + seriesId + "&airdate=" + today
+						+ "&language=" + App.LANGUAGE + ".xml";
+				FileUtils.copyURLToFile(new URL(url), cache);
 			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			final String url = App.MIRRORPATH
-					+ "/api/GetEpisodeByAirDate.php?apikey=" + App.API_KEY
-					+ "&seriesid=" + seriesId + "&airdate=" + today
-					+ "&language=" + App.LANGUAGE + ".xml";
-			task = new Thread(new Runnable(){
-
-				@Override
-				public void run() {
-					new DownloadFilesTask(url, file);					
-				}});
-			task.start();
-			try {
-				task.join();
-			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
@@ -74,8 +63,8 @@ public class Episode {
 			}
 			if (s != null)
 				s.close();
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// e.printStackTrace();
 		}
 	}
 

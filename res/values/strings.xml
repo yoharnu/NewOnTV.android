@@ -29,5 +29,7 @@
     <string name="settings_export_short">Export to SD</string>
     <string name="settings_import_short">Import from SD</string>
     <string name="settings_clear_list">Delete All Shows&#8230;</string>
+    <string name="defaultDate">04-12-1991</string>
+    <string name="today">Today</string>
 
 </resources>

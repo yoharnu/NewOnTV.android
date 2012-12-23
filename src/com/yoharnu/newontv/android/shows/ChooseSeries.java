@@ -1,10 +1,14 @@
 package com.yoharnu.newontv.android.shows;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.LinkedList;
 
+import org.apache.commons.io.FileUtils;
+
 import com.yoharnu.newontv.android.App;
-import com.yoharnu.newontv.android.DownloadFilesTask;
 import com.yoharnu.newontv.android.R;
 import com.yoharnu.newontv.android.Settings;
 
@@ -35,19 +39,6 @@ public class ChooseSeries extends Activity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
-		s = new Series(App.preferences.getString("search", ""), Series.NAME);
-		s.task = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				new DownloadFilesTask(s.url, s.file);
-			}
-		});
-	}
-
-	protected void onResume() {
-		super.onResume();
-
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);
@@ -55,13 +46,19 @@ public class ChooseSeries extends Activity {
 		pd.show();
 		new Thread(new Runnable() {
 			public void run() {
-				s.task.start();
-				File temp = new File(s.file);
+				s = new Series(App.preferences.getString("search", ""),
+						Series.NAME);
 				try {
-					s.task.join();
-				} catch (InterruptedException e) {
+					FileUtils.copyURLToFile(new URL(s.url), new File(s.file));
+				} catch (MalformedURLException e) {
+					pd.dismiss();
+					e.printStackTrace();
+				} catch (IOException e) {
+					pd.dismiss();
 					e.printStackTrace();
 				}
+
+				File temp = new File(s.file);
 				Series.parseSearch(temp);
 				temp.delete();
 				if (App.preferences.getBoolean("only_show_running", false)) {

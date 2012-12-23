@@ -80,13 +80,6 @@ public class App extends Application {
 
 	public static void add(String seriesId) {
 		Series temp = new Series(seriesId, Series.ID);
-		try {
-			if (temp.task != null)
-				temp.task.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return;
-		}
 		boolean present = false;
 		for (int i = 0; i < shows.size(); i++) {
 			if (shows.get(i).getSeriesId().equals(seriesId)) {
@@ -141,8 +134,8 @@ public class App extends Application {
 					File local = new File(context.getFilesDir(), "shows");
 					if (!local.exists())
 						return;
-					Entry existingEntry = mDBApi.metadata("/shows", 1,
-							null, false, null);
+					Entry existingEntry = mDBApi.metadata("/shows", 1, null,
+							false, null);
 					Log.i("Dropbox", "The file's rev is now: "
 							+ existingEntry.rev);
 					inputStream = new FileInputStream(local);
@@ -176,15 +169,16 @@ public class App extends Application {
 		}).start();
 	}
 
-	static void load() {
-		loadFromFile();
+	static void load(Activity activity) {
+		loadFromFile(activity);
 	}
 
 	static void loadFromDropbox(final Activity activity) {
 		final ProgressDialog pd = new ProgressDialog(activity);
 		pd.setCancelable(false);
-		pd.setTitle("Downloading from Dropbox...");
+		pd.setMessage("Downloading from Dropbox...");
 		pd.setIndeterminate(false);
+		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		activity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -195,8 +189,8 @@ public class App extends Application {
 			public void run() {
 				FileOutputStream outputStream = null;
 				try {
-					Entry existingEntry = mDBApi.metadata("/shows", 1,
-							null, false, null);
+					Entry existingEntry = mDBApi.metadata("/shows", 1, null,
+							false, null);
 					Log.i("Dropbox", "The file's rev is now: "
 							+ existingEntry.rev);
 					if (existingEntry.rev.equals(preferences.getString(
@@ -247,26 +241,50 @@ public class App extends Application {
 					}
 					if (pd.isShowing())
 						pd.dismiss();
-					loadFromFile();
+					loadFromFile(activity);
 				}
 			}
 		}).start();
 
 	}
 
-	protected static void loadFromFile() {
-		try {
-			Scanner s = new Scanner(new File(context.getFilesDir(), "shows"));
-			shows.clear();
-			while (s.hasNextLine()) {
-				add(s.nextLine());
+	protected static void loadFromFile(Activity activity) {
+		final ProgressDialog pd = new ProgressDialog(activity);
+		pd.setMessage("Loading...");
+		pd.setIndeterminate(true);
+		pd.setCancelable(false);
+		pd.show();
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					File shows = new File(context.getFilesDir(), "shows");
+					Scanner s = new Scanner(shows);
+					/*
+					 * int max = 0; while (s.hasNextLine()) { s.nextLine();
+					 * max++; } if (s != null) s.close(); pd.dismiss();
+					 * pd.setIndeterminate(false);
+					 * pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+					 * pd.setProgress(0); pd.setMax(max); pd.show(); s = new
+					 * Scanner(shows);
+					 */
+					App.shows.clear();
+					int counter = 0;
+					while (s.hasNextLine()) {
+						add(s.nextLine());
+						counter++;
+						pd.setProgress(counter);
+					}
+					if (s != null) {
+						s.close();
+					}
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} finally {
+					if (pd.isShowing())
+						pd.dismiss();
+				}
 			}
-			if (s != null) {
-				s.close();
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+		}).start();
 	}
 
 	public static void sort() {
@@ -281,6 +299,65 @@ public class App extends Application {
 			}
 			App.shows.set(iHole, temp);
 		}
+	}
+
+	public static void cleanUpCache() {
+		GregorianCalendar today = new GregorianCalendar();
+		today.add(
+				GregorianCalendar.DATE,
+				-1
+						* Integer.valueOf(App.preferences.getString(
+								"past-days-cache", "1")));
+		String todayString = Integer
+				.toString(today.get(GregorianCalendar.YEAR));
+		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
+		if (today.get(GregorianCalendar.DATE) < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
+		String newString = Integer.toString(App.today
+				.get(GregorianCalendar.YEAR));
+		if (App.today.get(GregorianCalendar.MONTH) + 1 < 10)
+			newString += "0";
+		newString += Integer
+				.toString(App.today.get(GregorianCalendar.MONTH) + 1);
+		if (App.today.get(GregorianCalendar.DATE) < 10)
+			newString += "0";
+		newString += Integer.toString(App.today.get(GregorianCalendar.DATE));
+		File[] files = new File(getContext().getCacheDir(), "episodes")
+				.listFiles();
+		if (files != null)
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].getName().compareTo(todayString) < 0
+						&& !files[i].getName().equals(newString)) {
+					File[] temp = files[i].listFiles();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j].delete();
+					}
+				}
+			}
+		today = new GregorianCalendar();
+		today.add(GregorianCalendar.DATE, Integer.valueOf(App.preferences
+				.getString("future-days-cache", "1")));
+		todayString = Integer.toString(today.get(GregorianCalendar.YEAR));
+		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
+		if (today.get(GregorianCalendar.DATE) < 10)
+			todayString += "0";
+		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
+		files = new File(getContext().getCacheDir(), "episodes").listFiles();
+		if (files != null)
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].getName().compareTo(todayString) > 0
+						&& !files[i].getName().equals(newString)) {
+					File[] temp = files[i].listFiles();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j].delete();
+					}
+				}
+			}
 	}
 
 	protected void checkPermissions() {

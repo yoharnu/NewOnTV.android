@@ -38,7 +38,7 @@ public class EditShowsList extends Activity {
 	protected void onResume() {
 		super.onStart();
 
-		this.update();
+		update();
 	}
 
 	private void update() {

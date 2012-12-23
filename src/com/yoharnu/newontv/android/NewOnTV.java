@@ -1,6 +1,5 @@
 package com.yoharnu.newontv.android;
 
-import java.io.File;
 import java.util.GregorianCalendar;
 
 import com.yoharnu.newontv.android.shows.EditShowsList;
@@ -28,84 +27,36 @@ public class NewOnTV extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
-		App.load();
+		App.load(NewOnTV.this);
 	}
 
 	protected void onResume() {
 		super.onResume();
 
-		App.today = new GregorianCalendar();
-		cleanUpCache();
+		App.cleanUpCache();
 		refresh();
 	}
 
 	protected void onPause() {
 		super.onPause();
 
+		App.today = new GregorianCalendar();
+		App.cleanUpCache();
 		if (pd != null && pd.isShowing()) {
 			pd.dismiss();
 		}
 	}
 
-	private void cleanUpCache() {
-		GregorianCalendar today = new GregorianCalendar();
-		today.add(GregorianCalendar.DATE, -1);
-		String todayString = Integer
-				.toString(today.get(GregorianCalendar.YEAR));
-		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
-		if (today.get(GregorianCalendar.DATE) < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
-		String newString = Integer.toString(App.today
-				.get(GregorianCalendar.YEAR));
-		if (App.today.get(GregorianCalendar.MONTH) + 1 < 10)
-			newString += "0";
-		newString += Integer
-				.toString(App.today.get(GregorianCalendar.MONTH) + 1);
-		if (App.today.get(GregorianCalendar.DATE) < 10)
-			newString += "0";
-		newString += Integer.toString(App.today.get(GregorianCalendar.DATE));
-		File[] files = new File(getCacheDir(), "episodes").listFiles();
-		if (files != null)
-			for (int i = 0; i < files.length; i++) {
-				if (files[i].getName().compareTo(todayString) < 0
-						&& !files[i].getName().equals(newString)) {
-					File[] temp = files[i].listFiles();
-					for (int j = 0; j < temp.length; j++) {
-						temp[j].delete();
-					}
-				}
-			}
-		today = new GregorianCalendar();
-		today.add(GregorianCalendar.DATE, 1);
-		todayString = Integer.toString(today.get(GregorianCalendar.YEAR));
-		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
-		if (today.get(GregorianCalendar.DATE) < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
-		files = new File(getCacheDir(), "episodes").listFiles();
-		if (files != null)
-			for (int i = 0; i < files.length; i++) {
-				if (files[i].getName().compareTo(todayString) > 0
-						&& !files[i].getName().equals(newString)) {
-					File[] temp = files[i].listFiles();
-					for (int j = 0; j < temp.length; j++) {
-						temp[j].delete();
-					}
-				}
-			}
-	}
-
 	private void refresh() {
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
-		pd.setIndeterminate(true);
+		pd.setIndeterminate(false);
+		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		pd.setMax(App.shows.size());
+		pd.setProgress(0);
 		pd.setCancelable(false);
 		pd.show();
+		this.pd = pd;
 		new Thread(new Runnable() {
 			public void run() {
 
@@ -129,9 +80,15 @@ public class NewOnTV extends Activity {
 				});
 				for (int i = 0; i < App.shows.size(); i++) {
 					new Episode(App.shows.get(i));
+					final int tempi = i;
+					runOnUiThread(new Runnable() {
+						public void run() {
+							pd.setProgress(tempi);
+						}
+					});
 				}
 				final LinearLayout ll = (LinearLayout) findViewById(R.id.dynamicLayout);
-				ll.post(new Runnable() {
+				runOnUiThread(new Runnable() {
 					public void run() {
 						ll.removeAllViews();
 					}
@@ -148,7 +105,7 @@ public class NewOnTV extends Activity {
 							ll.addView(time);
 						}
 					});
-					for (int i = 0; i < App.shows.size(); i++)
+					for (int i = 0; i < App.shows.size(); i++) {
 						if (App.shows.get(i).getTime().replaceAll(" ", "")
 								.equalsIgnoreCase("8:00PM")
 								|| App.shows.get(i).getTime().matches("20:00")) {
@@ -160,22 +117,16 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
+					}
 				}
 				{
 					final TextView time = new TextView(App.getContext());
@@ -198,20 +149,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
@@ -236,20 +180,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
@@ -274,20 +211,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
@@ -312,20 +242,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
@@ -350,20 +273,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
@@ -388,20 +304,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
@@ -427,20 +336,13 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 
@@ -494,31 +396,24 @@ public class NewOnTV extends Activity {
 									}
 								});
 								noShows = false;
-								try {
-									if (App.shows.get(i).episodes.get(j).task != null)
-										App.shows.get(i).episodes.get(j).task
-												.join();
-									final Episode temp = App.shows.get(i).episodes
-											.get(j);
-									final TextView tempView = new TextView(App
-											.getContext());
-									tempView.setText(App.shows.get(i).getTime());
-									runOnUiThread(new Runnable() {
-										public void run() {
-											ll.addView(tempView);
-											ll.addView(temp.print());
-										}
-									});
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
+								final Episode temp = App.shows.get(i).episodes
+										.get(j);
+								final TextView tempView = new TextView(App
+										.getContext());
+								tempView.setText(App.shows.get(i).getTime());
+								runOnUiThread(new Runnable() {
+									public void run() {
+										ll.addView(tempView);
+										ll.addView(temp.print());
+									}
+								});
 							}
 						}
 				}
 				if (noShows) {
 					final TextView nothing = new TextView(App.getContext());
 					nothing.setText("There is nothing new on tonight.");
-					ll.post(new Runnable() {
+					runOnUiThread(new Runnable() {
 						public void run() {
 							ll.addView(nothing);
 						}
@@ -536,8 +431,9 @@ public class NewOnTV extends Activity {
 		return true;
 	}
 
-	public void onNoShowsClick(View view) {
-		startActivity(new Intent(this, EditShowsList.class));
+	public void onTodayClick(View view) {
+			App.today = new GregorianCalendar();
+			refresh();
 	}
 
 	@Override
@@ -564,13 +460,6 @@ public class NewOnTV extends Activity {
 		}
 	}
 
-	public void onForceRefresh(View view) {
-		/*
-		 * File dir = new File(getCacheDir(), "episodes"); dir.delete();
-		 */
-		refresh();
-	}
-
 	public void onChangeDateClick(View view) {
 		DatePickerDialog dpd = new DatePickerDialog(this,
 				new DatePickerDialog.OnDateSetListener() {
@@ -578,7 +467,6 @@ public class NewOnTV extends Activity {
 					public void onDateSet(DatePicker dp, int year, int month,
 							int day) {
 						App.today = new GregorianCalendar(year, month, day);
-						cleanUpCache();
 					}
 				}, App.today.get(GregorianCalendar.YEAR),
 				App.today.get(GregorianCalendar.MONTH),

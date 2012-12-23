@@ -11,7 +11,9 @@ import com.yoharnu.newontv.android.shows.EditShowsList;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.annotation.SuppressLint;
@@ -101,7 +103,8 @@ public class Settings extends PreferenceActivity {
 						public void run() {
 							try {
 								FileUtils.copyFile(toImport, current);
-								App.loadFromFile();
+								pd.dismiss();
+								App.loadFromFile(Settings.this);
 								runOnUiThread(new Runnable() {
 									public void run() {
 										Toast toast = Toast.makeText(
@@ -114,8 +117,10 @@ public class Settings extends PreferenceActivity {
 								});
 							} catch (IOException e) {
 								e.printStackTrace();
+							} finally {
+								if (pd.isShowing())
+									pd.dismiss();
 							}
-							pd.dismiss();
 						}
 					}).start();
 					return true;
@@ -141,10 +146,15 @@ public class Settings extends PreferenceActivity {
 									@Override
 									public void onClick(DialogInterface dialog,
 											int which) {
-										new File(App.getContext()
-												.getFilesDir(), "shows").delete();
-										new File(App.getContext().getCacheDir(), "series").delete();
-										new File(App.getContext().getCacheDir(), "episodes").delete();
+										new File(
+												App.getContext().getFilesDir(),
+												"shows").delete();
+										new File(
+												App.getContext().getCacheDir(),
+												"series").delete();
+										new File(
+												App.getContext().getCacheDir(),
+												"episodes").delete();
 										App.shows.clear();
 										App.preferences.edit()
 												.remove("db-shows-rev")
@@ -193,13 +203,33 @@ public class Settings extends PreferenceActivity {
 					}
 				});
 		restoreFromDropbox
-		.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-			@Override
-			public boolean onPreferenceClick(Preference arg0) {
-				App.loadFromDropbox(Settings.this);
-				return true;
-			}
-		});
+				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+					@Override
+					public boolean onPreferenceClick(Preference arg0) {
+						App.loadFromDropbox(Settings.this);
+						return true;
+					}
+				});
+		ListPreference pastDaysCache = (ListPreference) findPreference("past-days-cache");
+		pastDaysCache
+				.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+					@Override
+					public boolean onPreferenceChange(Preference arg0,
+							Object arg1) {
+						App.cleanUpCache();
+						return true;
+					}
+				});
+		ListPreference futureDaysCache = (ListPreference) findPreference("future-days-cache");
+		futureDaysCache
+				.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+					@Override
+					public boolean onPreferenceChange(Preference arg0,
+							Object arg1) {
+						App.cleanUpCache();
+						return true;
+					}
+				});
 	}
 
 	protected void onResume() {

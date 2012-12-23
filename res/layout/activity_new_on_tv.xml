@@ -23,7 +23,18 @@
         android:id="@+id/changeDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/today"
         android:layout_alignParentBottom="true"
+        android:text="@string/defaultDate"
         android:onClick="onChangeDateClick" />
+    
+    <Button
+        android:id="@+id/today"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/today"
+        android:onClick="onTodayClick" />
 
 </RelativeLayout>
