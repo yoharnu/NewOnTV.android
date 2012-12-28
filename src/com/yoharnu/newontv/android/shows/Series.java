@@ -132,15 +132,17 @@ public class Series {
 				String line = s.nextLine();
 				String tag = XMLParser.getTag(line);
 				String data = XMLParser.getData(line);
-				if (data == null) {
+				if (data == null || data.replaceAll(" ", "").equals("")) {
 					data = "Not Available";
 				}
 				if (tag.equals("language")) {
 					language = data;
 				} else if (tag.equals("SeriesName")) {
-					seriesName = data;
+					seriesName = data.replaceAll("&quot;", "\"").replaceAll("&amp;",
+							"&");
 				} else if (tag.equals("Overview")) {
-					overview = data;
+					overview = data.replaceAll("&quot;", "\"").replaceAll("&amp;",
+							"&");
 				} else if (tag.equals("FirstAired")) {
 					firstAired = data;
 				} else if (tag.equals("IMDB_ID")) {
