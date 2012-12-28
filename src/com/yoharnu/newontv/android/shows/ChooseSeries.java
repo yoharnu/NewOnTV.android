@@ -181,6 +181,7 @@ public class ChooseSeries extends Activity {
 				}
 				App.preferences.edit().remove("db-shows-rev").commit();
 				App.save();
+				App.setChanged(true);
 				pd.dismiss();
 				ChooseSeries.this.finish();
 			}

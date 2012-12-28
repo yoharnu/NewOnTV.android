@@ -104,7 +104,11 @@ public class Settings extends PreferenceActivity {
 							try {
 								FileUtils.copyFile(toImport, current);
 								pd.dismiss();
-								App.loadFromFile(Settings.this);
+								try {
+									App.loadFromFile(Settings.this);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
 								runOnUiThread(new Runnable() {
 									public void run() {
 										Toast toast = Toast.makeText(
@@ -198,7 +202,7 @@ public class Settings extends PreferenceActivity {
 				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 					@Override
 					public boolean onPreferenceClick(Preference arg0) {
-						App.saveToDropbox();
+						App.saveToDropbox(Settings.this);
 						return true;
 					}
 				});

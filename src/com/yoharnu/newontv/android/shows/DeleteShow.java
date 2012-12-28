@@ -98,6 +98,7 @@ public class DeleteShow extends Activity implements OnItemSelectedListener {
 		App.shows.remove(selected);
 		App.preferences.edit().remove("db-shows-rev").commit();
 		App.save();
+		App.setChanged(true);
 		this.finish();
 	}
 

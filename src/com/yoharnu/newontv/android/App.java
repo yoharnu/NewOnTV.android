@@ -22,6 +22,7 @@ import com.dropbox.client2.exception.DropboxUnlinkedException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.Session.AccessType;
+import com.yoharnu.newontv.android.events.LoadingEvent;
 import com.yoharnu.newontv.android.shows.Series;
 
 import android.app.Activity;
@@ -48,6 +49,7 @@ public class App extends Application {
 	final static private String APP_SECRET = "ijw8q9xd90lo7h2";
 	final static private AccessType ACCESS_TYPE = AccessType.APP_FOLDER;
 	static DropboxAPI<AndroidAuthSession> mDBApi;
+	static private boolean changed = false;
 
 	public void onCreate() {
 		super.onCreate();
@@ -126,7 +128,18 @@ public class App extends Application {
 		}
 	}
 
-	static void saveToDropbox() {
+	static void saveToDropbox(final Activity activity) {
+		final ProgressDialog pd = new ProgressDialog(activity);
+		pd.setCancelable(false);
+		pd.setTitle("Loading...");
+		pd.setMessage("Uploading to Dropbox");
+		pd.setIndeterminate(true);
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				pd.show();
+			}
+		});
 		new Thread(new Runnable() {
 			public void run() {
 				FileInputStream inputStream = null;
@@ -140,9 +153,9 @@ public class App extends Application {
 							+ existingEntry.rev);
 					inputStream = new FileInputStream(local);
 					if (existingEntry != null && !existingEntry.isDeleted) {
-						mDBApi.delete("/shows.txt");
+						mDBApi.delete("/shows");
 					}
-					Entry newEntry = mDBApi.putFile("/shows.txt", inputStream,
+					Entry newEntry = mDBApi.putFile("/shows", inputStream,
 							local.length(), null, null);
 					Log.i("DbExampleLog", "The uploaded file's rev is: "
 							+ newEntry.rev);
@@ -164,19 +177,21 @@ public class App extends Application {
 						} catch (IOException e) {
 						}
 					}
+					pd.dismiss();
 				}
 			}
 		}).start();
 	}
 
-	static void load(Activity activity) {
+	static void load(final Activity activity) throws InterruptedException {
 		loadFromFile(activity);
 	}
 
 	static void loadFromDropbox(final Activity activity) {
 		final ProgressDialog pd = new ProgressDialog(activity);
 		pd.setCancelable(false);
-		pd.setMessage("Downloading from Dropbox...");
+		pd.setTitle("Loading...");
+		pd.setMessage("Downloading from Dropbox");
 		pd.setIndeterminate(false);
 		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		activity.runOnUiThread(new Runnable() {
@@ -241,50 +256,64 @@ public class App extends Application {
 					}
 					if (pd.isShowing())
 						pd.dismiss();
+				}
+				try {
 					loadFromFile(activity);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 		}).start();
 
 	}
 
-	protected static void loadFromFile(Activity activity) {
-		final ProgressDialog pd = new ProgressDialog(activity);
-		pd.setMessage("Loading...");
-		pd.setIndeterminate(true);
-		pd.setCancelable(false);
-		pd.show();
-		new Thread(new Runnable() {
+	protected static void loadFromFile(final Activity activity)
+			throws InterruptedException {
+		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				try {
-					File shows = new File(context.getFilesDir(), "shows");
-					Scanner s = new Scanner(shows);
-					/*
-					 * int max = 0; while (s.hasNextLine()) { s.nextLine();
-					 * max++; } if (s != null) s.close(); pd.dismiss();
-					 * pd.setIndeterminate(false);
-					 * pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-					 * pd.setProgress(0); pd.setMax(max); pd.show(); s = new
-					 * Scanner(shows);
-					 */
-					App.shows.clear();
-					int counter = 0;
-					while (s.hasNextLine()) {
-						add(s.nextLine());
-						counter++;
-						pd.setProgress(counter);
+				final ProgressDialog pd = new ProgressDialog(activity);
+				pd.setTitle("Loading...");
+				pd.setMessage("Loading from file and downloading series info");
+				pd.setIndeterminate(true);
+				pd.setCancelable(false);
+				pd.show();
+				new Thread(new Runnable() {
+					public void run() {
+						try {
+							File shows = new File(context.getFilesDir(),
+									"shows");
+							Scanner s = new Scanner(shows);
+							/*
+							 * int max = 0; while (s.hasNextLine()) {
+							 * s.nextLine(); max++; } if (s != null) s.close();
+							 * pd.dismiss(); pd.setIndeterminate(false);
+							 * pd.setProgressStyle
+							 * (ProgressDialog.STYLE_HORIZONTAL);
+							 * pd.setProgress(0); pd.setMax(max); pd.show(); s =
+							 * new Scanner(shows);
+							 */
+							App.shows.clear();
+							int counter = 0;
+							while (s.hasNextLine()) {
+								add(s.nextLine());
+								counter++;
+								pd.setProgress(counter);
+							}
+							if (s != null) {
+								s.close();
+							}
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						} finally {
+							if (pd.isShowing())
+								pd.dismiss();
+						}
+						LoadingEvent.done();
+						changed = true;
 					}
-					if (s != null) {
-						s.close();
-					}
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} finally {
-					if (pd.isShowing())
-						pd.dismiss();
-				}
+				}).start();
 			}
-		}).start();
+		});
 	}
 
 	public static void sort() {
@@ -387,4 +416,13 @@ public class App extends Application {
 	public static boolean isExternalStorageAvailable() {
 		return mExternalStorageAvailable;
 	}
+
+	public static boolean hasChanged() {
+		return changed;
+	}
+
+	public static void setChanged(boolean changed) {
+		App.changed = changed;
+	}
+
 }

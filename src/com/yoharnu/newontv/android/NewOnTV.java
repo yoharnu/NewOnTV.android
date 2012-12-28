@@ -2,6 +2,8 @@ package com.yoharnu.newontv.android;
 
 import java.util.GregorianCalendar;
 
+import com.yoharnu.newontv.android.events.LoadingEvent;
+import com.yoharnu.newontv.android.events.LoadingListener;
 import com.yoharnu.newontv.android.shows.EditShowsList;
 import com.yoharnu.newontv.android.shows.Episode;
 
@@ -27,14 +29,33 @@ public class NewOnTV extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
-		App.load(NewOnTV.this);
+
+		LoadingEvent.addLoadingListener(new LoadingListener() {
+			@Override
+			public void onDoneLoading() {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						refresh();
+					}
+				});
+			}
+		});
+		try {
+			App.load(NewOnTV.this);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	protected void onResume() {
 		super.onResume();
 
 		App.cleanUpCache();
-		refresh();
+		
+		if(App.hasChanged()){
+			refresh();
+		}
 	}
 
 	protected void onPause() {
@@ -48,8 +69,24 @@ public class NewOnTV extends Activity {
 	}
 
 	private void refresh() {
+		{
+			GregorianCalendar temp = new GregorianCalendar();
+			if (temp.get(GregorianCalendar.MONTH) == App.today
+					.get(GregorianCalendar.MONTH)
+					&& temp.get(GregorianCalendar.DATE) == App.today
+							.get(GregorianCalendar.DATE)
+					&& temp.get(GregorianCalendar.YEAR) == App.today
+							.get(GregorianCalendar.YEAR)) {
+				Button today = (Button) findViewById(R.id.today);
+				today.setEnabled(false);
+			} else {
+				Button today = (Button) findViewById(R.id.today);
+				today.setEnabled(true);
+			}
+		}
 		final ProgressDialog pd = new ProgressDialog(this);
-		pd.setMessage("Loading...");
+		pd.setTitle("Loading...");
+		pd.setMessage("Downloading episode info");
 		pd.setIndeterminate(false);
 		pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		pd.setMax(App.shows.size());
@@ -419,6 +456,7 @@ public class NewOnTV extends Activity {
 						}
 					});
 				}
+				App.setChanged(false);
 				pd.dismiss();
 			}
 		}).start();
@@ -432,8 +470,8 @@ public class NewOnTV extends Activity {
 	}
 
 	public void onTodayClick(View view) {
-			App.today = new GregorianCalendar();
-			refresh();
+		App.today = new GregorianCalendar();
+		refresh();
 	}
 
 	@Override
@@ -474,6 +512,8 @@ public class NewOnTV extends Activity {
 		dpd.setOnDismissListener(new DialogInterface.OnDismissListener() {
 			@Override
 			public void onDismiss(DialogInterface arg0) {
+				Button today = (Button) findViewById(R.id.today);
+				today.setEnabled(false);
 				refresh();
 			}
 		});

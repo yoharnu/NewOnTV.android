@@ -68,9 +68,11 @@ public class Series {
 						} else if (tag.equals("language")) {
 							temp.language = data;
 						} else if (tag.equals("SeriesName")) {
-							temp.seriesName = data.replaceAll("&amp;", "&");
+							temp.seriesName = data.replaceAll("&quot;", "\"").replaceAll("&amp;",
+									"&");
 						} else if (tag.equals("Overview")) {
-							temp.overview = data;
+							temp.overview = data.replaceAll("&quot;", "\"").replaceAll("&amp;",
+									"&");
 						} else if (tag.equals("FirstAired")) {
 							temp.firstAired = data;
 						} else if (tag.equals("IMDB_ID")) {
@@ -106,7 +108,6 @@ public class Series {
 						+ "/" + App.LANGUAGE + ".xml";
 				FileUtils.copyURLToFile(new URL(url), cache);
 			} catch (IOException e) {
-				//e.printStackTrace();
 			}
 		}
 		parse();
