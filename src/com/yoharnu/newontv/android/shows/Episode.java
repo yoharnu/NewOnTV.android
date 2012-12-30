@@ -118,7 +118,8 @@ public class Episode {
 			else if (tag.equals("EpisodeNumber"))
 				episode = data;
 			else if (tag.equals("EpisodeName"))
-				epName = data;
+				epName = data.replaceAll("&quot;", "\"").replaceAll("&amp;",
+						"&");
 		}
 	}
 
