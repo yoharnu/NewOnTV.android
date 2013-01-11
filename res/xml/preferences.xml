@@ -12,32 +12,6 @@
             android:summaryOn="@string/settings_runningShowsOnly_summaryOn"
             android:title="@string/settings_runningShowsOnly" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Cache Settings">
-        <ListPreference
-            android:dialogTitle="Number of future days to keep in cache"
-            android:summary="Number of future days to keep in cache"
-            android:negativeButtonText="Cancel"
-            android:positiveButtonText="Done"
-            android:defaultValue="1"
-            android:persistent="true"
-            android:title="Future days"
-            android:key="future-days-cache"
-            android:entries="@array/cache_days"
-            android:entryValues="@array/cache_days"
-            />
-        <ListPreference
-            android:dialogTitle="Number of past days to keep in cache"
-            android:summary="Number of past days to keep in cache"
-            android:negativeButtonText="Cancel"
-            android:positiveButtonText="Done"
-            android:defaultValue="1"
-            android:persistent="true"
-            android:title="Past days"
-            android:key="past-days-cache"
-            android:entries="@array/cache_days"
-            android:entryValues="@array/cache_days"
-            />
-    </PreferenceCategory>
     <PreferenceCategory android:title="Dropbox Settings" >
         <Preference
             android:key="activate_Dropbox"

@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.Scanner;
@@ -24,6 +26,7 @@ import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.Session.AccessType;
 import com.yoharnu.newontv.android.events.LoadingEvent;
 import com.yoharnu.newontv.android.shows.Series;
+import com.yoharnu.newontv.android.shows.XMLParser;
 
 import android.app.Activity;
 import android.app.Application;
@@ -273,8 +276,9 @@ public class App extends Application {
 			public void run() {
 				final ProgressDialog pd = new ProgressDialog(activity);
 				pd.setTitle("Loading...");
-				pd.setMessage("Loading from file and downloading series info");
-				pd.setIndeterminate(true);
+				pd.setMessage("Loading from file");
+				pd.setIndeterminate(false);
+				pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 				pd.setCancelable(false);
 				pd.show();
 				new Thread(new Runnable() {
@@ -283,40 +287,180 @@ public class App extends Application {
 							File shows = new File(context.getFilesDir(),
 									"shows");
 							Scanner s = new Scanner(shows);
-							/*
-							 * int max = 0; while (s.hasNextLine()) {
-							 * s.nextLine(); max++; } if (s != null) s.close();
-							 * pd.dismiss(); pd.setIndeterminate(false);
-							 * pd.setProgressStyle
-							 * (ProgressDialog.STYLE_HORIZONTAL);
-							 * pd.setProgress(0); pd.setMax(max); pd.show(); s =
-							 * new Scanner(shows);
-							 */
 							App.shows.clear();
-							int counter = 0;
+							LinkedList<String> temp = new LinkedList<String>();
 							while (s.hasNextLine()) {
-								add(s.nextLine());
-								counter++;
-								pd.setProgress(counter);
+								temp.add(s.nextLine());
 							}
 							if (s != null) {
 								s.close();
 							}
+							activity.runOnUiThread(new Runnable() {
+								public void run() {
+									pd.setMax(1);
+									pd.setMessage("Checking for updates");
+								}
+							});
+							long lastUpdated = 0;
+							try {
+								lastUpdated = App.preferences.getLong(
+										"last-updated", 0);
+							} catch (ClassCastException e) {
+								App.preferences.edit().remove("last-updated")
+										.apply();
+							}
+							File tempFile = new File(activity.getCacheDir(),
+									"update");
+							if (lastUpdated == 0) {
+								pd.setProgress(1);
+								for (String id : temp) {
+									new File(App.getContext().getCacheDir()
+											.getAbsolutePath(), "series/" + id)
+											.delete();
+								}
+								{
+									final int workaround = temp.size();
+									activity.runOnUiThread(new Runnable() {
+										public void run() {
+											pd.setMax(workaround);
+											pd.setMessage("Updating changed shows");
+										}
+									});
+								}
+								for (int i = 0; i < temp.size(); i++) {
+									new File(App.getContext().getCacheDir()
+											.getAbsolutePath(), "series/"
+											+ temp.get(i)).delete();
+									add(temp.get(i));
+									final int workaround = i + 1;
+									activity.runOnUiThread(new Runnable() {
+										public void run() {
+											pd.setProgress(workaround);
+										}
+									});
+								}
+								App.preferences
+										.edit()
+										.putLong(
+												"last-updated",
+												new GregorianCalendar()
+														.getTimeInMillis())
+										.apply();
+							} else {
+								LinkedList<String> updated = new LinkedList<String>();
+								LinkedList<String> notUpdated = new LinkedList<String>();
+								try {
+									lastUpdated = new GregorianCalendar()
+													.getTimeInMillis() - lastUpdated;
+									if (lastUpdated / 3600000.0 >= 1) {
+										lastUpdated = (long) Math
+												.ceil(lastUpdated / 3600000.0);
+										FileUtils.copyURLToFile(new URL(
+												"http://services.tvrage.com/feeds/last_updates.php?hours="
+														+ lastUpdated),
+												tempFile);
+										preferences
+												.edit()
+												.putLong(
+														"last-updated",
+														new GregorianCalendar()
+																.getTimeInMillis())
+												.apply();
+										activity.runOnUiThread(new Runnable() {
+											public void run() {
+												pd.setProgress(1);
+											}
+										});
+										Scanner s1 = new Scanner(tempFile);
+										System.out.println("Before: "
+												+ preferences.getLong(
+														"last-updated", 0));
+										while (s1.hasNextLine()) {
+											String line = s1.nextLine();
+											if (XMLParser.getTag(line).equals(
+													"show")) {
+												for (String id : temp) {
+													if (id.equals(line
+															.split("<id>")[1]
+															.split("</id>")[0])) {
+														updated.add(id);
+													}
+												}
+											}
+										}
+										s1.close();
+									}
+									for (String id : temp) {
+										if (!updated.contains(id)) {
+											notUpdated.add(id);
+										}
+									}
+
+									{
+										final int workaround = updated.size();
+										activity.runOnUiThread(new Runnable() {
+											public void run() {
+												pd.setMax(workaround);
+												pd.setProgress(0);
+												pd.setMessage("Updating changed shows");
+											}
+										});
+									}
+									for (int i = 0; i < updated.size(); i++) {
+										new File(App.getContext().getCacheDir()
+												.getAbsolutePath(), "series/"
+												+ updated.get(i)).delete();
+										add(updated.get(i));
+										final int workaround = i + 1;
+										activity.runOnUiThread(new Runnable() {
+											public void run() {
+												pd.setProgress(workaround);
+											}
+										});
+									}
+									{
+										final int workaround = notUpdated
+												.size();
+										activity.runOnUiThread(new Runnable() {
+											public void run() {
+												pd.setMax(workaround);
+												pd.setProgress(0);
+												pd.setMessage("Setting up unchanged shows");
+											}
+										});
+									}
+									for (int i = 0; i < notUpdated.size(); i++) {
+										add(notUpdated.get(i));
+										final int workaround = i + 1;
+										activity.runOnUiThread(new Runnable() {
+											public void run() {
+												pd.setProgress(workaround);
+											}
+										});
+									}
+								} catch (MalformedURLException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+							tempFile.delete();
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
-						} finally {
-							if (pd.isShowing())
-								pd.dismiss();
 						}
+						activity.runOnUiThread(new Runnable() {
+							public void run() {
+								pd.dismiss();
+							}
+						});
 						LoadingEvent.done();
-						changed = true;
 					}
 				}).start();
 			}
 		});
 	}
 
-	public static void sort() {
+	public static void sortByName() {
 		for (int i = 0; i < App.shows.size(); i++) {
 			Series temp = App.shows.get(i);
 			int iHole = i;
@@ -328,65 +472,6 @@ public class App extends Application {
 			}
 			App.shows.set(iHole, temp);
 		}
-	}
-
-	public static void cleanUpCache() {
-		GregorianCalendar today = new GregorianCalendar();
-		today.add(
-				GregorianCalendar.DATE,
-				-1
-						* Integer.valueOf(App.preferences.getString(
-								"past-days-cache", "1")));
-		String todayString = Integer
-				.toString(today.get(GregorianCalendar.YEAR));
-		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
-		if (today.get(GregorianCalendar.DATE) < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
-		String newString = Integer.toString(App.today
-				.get(GregorianCalendar.YEAR));
-		if (App.today.get(GregorianCalendar.MONTH) + 1 < 10)
-			newString += "0";
-		newString += Integer
-				.toString(App.today.get(GregorianCalendar.MONTH) + 1);
-		if (App.today.get(GregorianCalendar.DATE) < 10)
-			newString += "0";
-		newString += Integer.toString(App.today.get(GregorianCalendar.DATE));
-		File[] files = new File(getContext().getCacheDir(), "episodes")
-				.listFiles();
-		if (files != null)
-			for (int i = 0; i < files.length; i++) {
-				if (files[i].getName().compareTo(todayString) < 0
-						&& !files[i].getName().equals(newString)) {
-					File[] temp = files[i].listFiles();
-					for (int j = 0; j < temp.length; j++) {
-						temp[j].delete();
-					}
-				}
-			}
-		today = new GregorianCalendar();
-		today.add(GregorianCalendar.DATE, Integer.valueOf(App.preferences
-				.getString("future-days-cache", "1")));
-		todayString = Integer.toString(today.get(GregorianCalendar.YEAR));
-		if (today.get(GregorianCalendar.MONTH) + 1 < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.MONTH) + 1);
-		if (today.get(GregorianCalendar.DATE) < 10)
-			todayString += "0";
-		todayString += Integer.toString(today.get(GregorianCalendar.DATE));
-		files = new File(getContext().getCacheDir(), "episodes").listFiles();
-		if (files != null)
-			for (int i = 0; i < files.length; i++) {
-				if (files[i].getName().compareTo(todayString) > 0
-						&& !files[i].getName().equals(newString)) {
-					File[] temp = files[i].listFiles();
-					for (int j = 0; j < temp.length; j++) {
-						temp[j].delete();
-					}
-				}
-			}
 	}
 
 	protected void checkPermissions() {

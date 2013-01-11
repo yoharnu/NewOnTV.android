@@ -39,6 +39,10 @@ public class ChooseSeries extends Activity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
+	}
+
+	protected void onResume() {
+		super.onResume();
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);
@@ -67,11 +71,14 @@ public class ChooseSeries extends Activity {
 						tempOptions.add(Series.options.get(i));
 					}
 					Series.options.clear();
-					for (int i = 0; i < tempOptions.size(); i++) {
-						Series tempSeries = new Series(tempOptions.get(i)
-								.getSeriesId(), Series.ID);
-						if (tempSeries.getStatus().equals("Continuing")) {
-							Series.options.add(tempSeries);
+					for (Series s : tempOptions) {
+						if (s.getStatus() == null) {
+							System.out.println(s.getSeriesName());
+						}
+						if (!s.getStatus().equals("Canceled/Ended")
+								&& !s.getStatus().equals("Pilot Rejected")
+								&& !s.getStatus().equals("Never Aired")) {
+							Series.options.add(s);
 						}
 					}
 				}
@@ -105,8 +112,7 @@ public class ChooseSeries extends Activity {
 								}
 								TextView overview = (TextView) findViewById(R.id.spins_overview);
 								overview.setText("First Aired: "
-										+ series.getFirstAired()
-										+ "\nOverview: " + series.getOverview());
+										+ series.getFirstAired());
 								overview.setSingleLine(false);
 
 								overview.setVisibility(View.VISIBLE);
@@ -157,7 +163,8 @@ public class ChooseSeries extends Activity {
 
 	public void add(View view) {
 		final ProgressDialog pd = new ProgressDialog(this);
-		pd.setMessage("Loading...");
+		pd.setTitle("Loading");
+		pd.setMessage("Downloading. Please wait.");
 		pd.setIndeterminate(true);
 		pd.setCancelable(false);
 		pd.show();
@@ -173,8 +180,8 @@ public class ChooseSeries extends Activity {
 						for (int j = 0; j < App.shows.size(); j++) {
 							if (!Series.options.get(i).getSeriesId()
 									.equals(App.shows.get(j).getSeriesId())
-									&& Series.options.get(i).cache != null) {
-								Series.options.get(i).cache.delete();
+									&& Series.options.get(i).getCache() != null) {
+								Series.options.get(i).getCache().delete();
 							}
 						}
 					}

@@ -31,18 +31,20 @@ public class EditShowsList extends Activity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
-
 	}
 
 	@Override
 	protected void onResume() {
-		super.onStart();
+		super.onResume();
+
+		EditText editable = (EditText) findViewById(R.id.addShowString);
+		editable.setText("");
 
 		update();
 	}
 
 	private void update() {
-		App.sort();
+		App.sortByName();
 
 		LinearLayout ll = (LinearLayout) findViewById(R.id.showsListLayout);
 		ll.removeAllViews();
@@ -64,7 +66,7 @@ public class EditShowsList extends Activity {
 		getMenuInflater().inflate(R.menu.activity_edit_shows_list, menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {

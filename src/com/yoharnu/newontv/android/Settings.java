@@ -11,9 +11,7 @@ import com.yoharnu.newontv.android.shows.EditShowsList;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.annotation.SuppressLint;
@@ -214,27 +212,7 @@ public class Settings extends PreferenceActivity {
 						return true;
 					}
 				});
-		ListPreference pastDaysCache = (ListPreference) findPreference("past-days-cache");
-		pastDaysCache
-				.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-					@Override
-					public boolean onPreferenceChange(Preference arg0,
-							Object arg1) {
-						App.cleanUpCache();
-						return true;
-					}
-				});
-		ListPreference futureDaysCache = (ListPreference) findPreference("future-days-cache");
-		futureDaysCache
-				.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-					@Override
-					public boolean onPreferenceChange(Preference arg0,
-							Object arg1) {
-						App.cleanUpCache();
-						return true;
-					}
-				});
-	}
+			}
 
 	protected void onResume() {
 		super.onResume();

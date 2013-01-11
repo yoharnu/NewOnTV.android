@@ -2,9 +2,6 @@ package com.yoharnu.newontv.android.shows;
 
 public class XMLParser {
 
-	private XMLParser() {
-	}
-
 	public static String getTag(final String line) {
 		String[] splits = line.split(">");
 		if (splits.length > 0) {
@@ -24,6 +21,6 @@ public class XMLParser {
 				return splits[0];
 			}
 		}
-		return "";
+		return null;
 	}
 }
