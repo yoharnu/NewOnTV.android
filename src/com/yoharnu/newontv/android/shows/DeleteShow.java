@@ -95,6 +95,8 @@ public class DeleteShow extends Activity implements OnItemSelectedListener {
 	public void delete(View view) {
 		new File(this.getCacheDir(), "/series/" + selected.getSeriesId())
 				.delete();
+		new File(this.getCacheDir(), "/episodes/" + selected.getSeriesId())
+		.delete();
 		App.shows.remove(selected);
 		App.preferences.edit().remove("db-shows-rev").commit();
 		App.save();

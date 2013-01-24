@@ -39,9 +39,7 @@ import android.util.Log;
 
 public class App extends Application {
 
-	public static final String MIRRORPATH = "http://thetvdb.com";
-	public static final String LANGUAGE = "en";
-	public static final String API_KEY = "768A3A72ACDABC4A";
+	public static final String API_KEY = "ogANe1zEs1OHNs7OUO5I";
 	protected static Context context;
 	public static SharedPreferences preferences;
 	public static LinkedList<Series> shows;
@@ -288,6 +286,8 @@ public class App extends Application {
 									"shows");
 							Scanner s = new Scanner(shows);
 							App.shows.clear();
+							System.gc();
+							
 							LinkedList<String> temp = new LinkedList<String>();
 							while (s.hasNextLine()) {
 								temp.add(s.nextLine());
@@ -316,6 +316,9 @@ public class App extends Application {
 								for (String id : temp) {
 									new File(App.getContext().getCacheDir()
 											.getAbsolutePath(), "series/" + id)
+											.delete();
+									new File(App.getContext().getCacheDir()
+											.getAbsolutePath(), "episodes/" + id)
 											.delete();
 								}
 								{
@@ -409,6 +412,9 @@ public class App extends Application {
 									for (int i = 0; i < updated.size(); i++) {
 										new File(App.getContext().getCacheDir()
 												.getAbsolutePath(), "series/"
+												+ updated.get(i)).delete();
+										new File(App.getContext().getCacheDir()
+												.getAbsolutePath(), "episodes/"
 												+ updated.get(i)).delete();
 										add(updated.get(i));
 										final int workaround = i + 1;
