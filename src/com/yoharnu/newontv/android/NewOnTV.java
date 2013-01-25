@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 import com.yoharnu.newontv.android.events.LoadingEvent;
 import com.yoharnu.newontv.android.events.LoadingListener;
+import com.yoharnu.newontv.android.services.UpdaterService;
 import com.yoharnu.newontv.android.shows.EditShowsList;
 import com.yoharnu.newontv.android.shows.Episode;
 import com.yoharnu.newontv.android.shows.Series;
@@ -43,6 +44,7 @@ public class NewOnTV extends Activity {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
+						NewOnTV.this.startService(new Intent(NewOnTV.this, UpdaterService.class));
 						refresh();
 					}
 				});

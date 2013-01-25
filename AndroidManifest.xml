@@ -55,6 +55,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.android.NewOnTV" />
         </activity>
+        <service android:name="com.yoharnu.newontv.android.services.UpdaterService" />
         <activity
             android:name="com.dropbox.client2.android.AuthActivity"
             android:configChanges="orientation|keyboard"
