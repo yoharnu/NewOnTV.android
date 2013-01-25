@@ -1,4 +1,4 @@
-package com.yoharnu.newontv.android.events;
+package com.yoharnu.newontv.events;
 
 import java.util.ArrayList;
 

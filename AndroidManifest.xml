@@ -13,13 +13,13 @@
         android:targetSdkVersion="17" />
 
     <application
-        android:name="com.yoharnu.newontv.android.App"
+        android:name="com.yoharnu.newontv.App"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.yoharnu.newontv.android.NewOnTV"
+            android:name="com.yoharnu.newontv.NewOnTV"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,35 +28,36 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.yoharnu.newontv.android.shows.EditShowsList"
+            android:name="com.yoharnu.newontv.shows.EditShowsList"
             android:label="@string/title_activity_edit_shows_list" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.yoharnu.newontv.android.NewOnTV" />
+                android:value="com.yoharnu.newontv.NewOnTV" />
         </activity>
         <activity
-            android:name="com.yoharnu.newontv.android.shows.ChooseSeries"
+            android:name="com.yoharnu.newontv.shows.ChooseSeries"
             android:label="@string/title_activity_choose_series" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.yoharnu.newontv.android.shows.EditShowsList" />
+                android:value="com.yoharnu.newontv.shows.EditShowsList" />
         </activity>
         <activity
-            android:name="com.yoharnu.newontv.android.shows.DeleteShow"
+            android:name="com.yoharnu.newontv.shows.DeleteShow"
             android:label="@string/title_activity_delete_show" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.yoharnu.newontv.android.shows.EditShowsList" />
+                android:value="com.yoharnu.newontv.shows.EditShowsList" />
         </activity>
         <activity
-            android:name="com.yoharnu.newontv.android.Settings"
+            android:name="com.yoharnu.newontv.Settings"
             android:label="@string/title_activity_settings" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.yoharnu.newontv.android.NewOnTV" />
+                android:value="com.yoharnu.newontv.NewOnTV" />
         </activity>
-        <service android:name="com.yoharnu.newontv.android.services.UpdaterService" />
-        <activity
+
+        <service android:name="com.yoharnu.newontv.services.UpdaterService" />
+        <activity
             android:name="com.dropbox.client2.android.AuthActivity"
             android:configChanges="orientation|keyboard"
             android:launchMode="singleTask" >

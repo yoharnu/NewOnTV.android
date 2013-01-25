@@ -1,11 +1,11 @@
-package com.yoharnu.newontv.android.shows;
+package com.yoharnu.newontv.shows;
 
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 
 import android.widget.TextView;
 
-import com.yoharnu.newontv.android.App;
+import com.yoharnu.newontv.App;
 
 public class Episode {
 	private String season;
@@ -21,14 +21,14 @@ public class Episode {
 		episode = "e" + line.split("<seasonnum>")[1].split("</seasonnum>")[0];
 		epName = line.split("<title>")[1].split("</title>")[0]
 				.replaceAll("&#39;", "'").replaceAll("&quot;", "\"")
-				.replaceAll("&", "&amp;");
+				.replaceAll("&amp;", "&");
 		String[] splits = line.split("<summary>");
 		summary = "Not Available";
 		if (splits.length > 1) {
 			splits = splits[1].split("</summary");
 			if (splits.length > 0)
 				summary = splits[0].replaceAll("&#39;", "'")
-						.replaceAll("&quot;", "\"").replaceAll("&", "&amp;");
+						.replaceAll("&quot;", "\"").replaceAll("&amp;", "&");
 		}
 		String temp = line.split("<airdate>")[1].split("</airdate>")[0];
 		airDate = new GregorianCalendar(parent.getTimeZone());

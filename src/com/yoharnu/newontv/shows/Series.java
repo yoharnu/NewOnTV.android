@@ -1,4 +1,4 @@
-package com.yoharnu.newontv.android.shows;
+package com.yoharnu.newontv.shows;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,7 +11,7 @@ import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
 
-import com.yoharnu.newontv.android.App;
+import com.yoharnu.newontv.App;
 
 public class Series {
 	public static final int NAME = 0;
@@ -95,12 +95,12 @@ public class Series {
 	public void setupSeriesById(final String id) {
 		this.seriesid = id;
 		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
-				+ "/series/" + id;
+				+ "/series/" + seriesid;
 		seriesCache = new File(seriesFile);
 		if (!seriesCache.exists()) {
 			try {
 				seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
-						+ App.API_KEY + "&sid=" + id;
+						+ App.API_KEY + "&sid=" + seriesid;
 				FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
 			} catch (IOException e) {
 			}
@@ -173,13 +173,13 @@ public class Series {
 				if (tag.equals("name") || tag.equals("showname")) {
 					seriesName = data.replaceAll("&#39;", "'")
 							.replaceAll("&quot;", "\"")
-							.replaceAll("&", "&amp;");
+							.replaceAll("&amp;", "&");
 				} else if (tag.equals("started") || tag.equals("startdate")) {
 					firstAired = data;
 				} else if (tag.equals("summary")) {
 					summary = data.replaceAll("&#39;", "'")
 							.replaceAll("&quot;", "\"")
-							.replaceAll("&", "&amp;");
+							.replaceAll("&amp;", "&");
 				} else if (tag.equals("airtime")) {
 					airTime = data;
 				} else if (tag.contains("etwork") && !tag.contains("/")) {
@@ -216,12 +216,23 @@ public class Series {
 		return returnVal;
 	}
 
-	public void redownload() {
-		try {
-			seriesUrl = "http://services.tvrage.com/feeds/full_show_info.php?sid="
-					+ seriesid;
+	public void redownload() throws IOException {
+		deleteCache();
+		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
+				+ "/series/" + seriesid;
+		seriesCache = new File(seriesFile);
+		if (!seriesCache.exists()) {
+			seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
+					+ App.API_KEY + "&sid=" + seriesid;
 			FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
-		} catch (IOException e) {
+		}
+		episodeFile = App.getContext().getCacheDir().getAbsolutePath()
+				+ "/episodes/" + seriesid;
+		episodeCache = new File(episodeFile);
+		if (!episodeCache.exists()) {
+			episodeUrl = "http://services.tvrage.com/myfeeds/episode_list.php?key="
+					+ App.API_KEY + "&sid=" + seriesid;
+			FileUtils.copyURLToFile(new URL(episodeUrl), episodeCache);
 		}
 	}
 
@@ -267,6 +278,11 @@ public class Series {
 
 	public String getSummary() {
 		return summary;
+	}
+
+	public void deleteCache() {
+		seriesCache.delete();
+		episodeCache.delete();
 	}
 
 }

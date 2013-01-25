@@ -1,15 +1,16 @@
-package com.yoharnu.newontv.android;
+package com.yoharnu.newontv;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 
-import com.yoharnu.newontv.android.events.LoadingEvent;
-import com.yoharnu.newontv.android.events.LoadingListener;
-import com.yoharnu.newontv.android.services.UpdaterService;
-import com.yoharnu.newontv.android.shows.EditShowsList;
-import com.yoharnu.newontv.android.shows.Episode;
-import com.yoharnu.newontv.android.shows.Series;
+import com.yoharnu.newontv.android.R;
+import com.yoharnu.newontv.events.LoadingEvent;
+import com.yoharnu.newontv.events.LoadingListener;
+import com.yoharnu.newontv.services.UpdaterService;
+import com.yoharnu.newontv.shows.EditShowsList;
+import com.yoharnu.newontv.shows.Episode;
+import com.yoharnu.newontv.shows.Series;
 
 import android.os.Bundle;
 import android.app.Activity;

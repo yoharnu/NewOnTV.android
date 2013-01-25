@@ -1,4 +1,4 @@
-package com.yoharnu.newontv.android;
+package com.yoharnu.newontv;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 import com.dropbox.client2.session.AccessTokenPair;
-import com.yoharnu.newontv.android.shows.EditShowsList;
+import com.yoharnu.newontv.android.R;
+import com.yoharnu.newontv.shows.EditShowsList;
 
 import android.os.Build;
 import android.os.Bundle;

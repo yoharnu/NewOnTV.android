@@ -1,4 +1,4 @@
-package com.yoharnu.newontv.android.shows;
+package com.yoharnu.newontv.shows;
 
 public class XMLParser {
 

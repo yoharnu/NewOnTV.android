@@ -1,4 +1,4 @@
-package com.yoharnu.newontv.android.services;
+package com.yoharnu.newontv.services;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,9 +10,9 @@ import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
 
-import com.yoharnu.newontv.android.App;
-import com.yoharnu.newontv.android.shows.Series;
-import com.yoharnu.newontv.android.shows.XMLParser;
+import com.yoharnu.newontv.App;
+import com.yoharnu.newontv.shows.Series;
+import com.yoharnu.newontv.shows.XMLParser;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
@@ -28,7 +28,7 @@ public class UpdaterService extends Service {
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
 
-	// Handler that receives messages from the thread
+	// Handler that receives messages from the threa
 	@SuppressLint("HandlerLeak")
 	private final class ServiceHandler extends Handler {
 		public ServiceHandler(Looper looper) {
@@ -55,30 +55,17 @@ public class UpdaterService extends Service {
 			if (lastUpdated == 0) {
 				System.out.println("Checking for updates 1/1");
 				System.out.println("Updating changed shows 0/" + temp.size());
-				for (int i = 0; i < temp.size(); i++) {
-					File seriesCache = new File(UpdaterService.this
-							.getCacheDir().getAbsolutePath(), "series/"
-							+ temp.get(i));
-					seriesCache.delete();
-					File episodeCache = new File(App.getContext().getCacheDir()
-							.getAbsolutePath(), "episodes/" + temp.get(i));
-					episodeCache.delete();
-
+				for (int i = 0; i < App.shows.size(); i++) {
+					Series series = App.shows.get(i);
 					try {
-						FileUtils.copyURLToFile(new URL(
-								"http://services.tvrage.com/myfeeds/showinfo.php?key="
-										+ App.API_KEY + "&sid=" + temp.get(i)),
-								seriesCache);
-						FileUtils.copyURLToFile(new URL(
-								"http://services.tvrage.com/myfeeds/episode_list.php?key="
-										+ App.API_KEY + "&sid=" + temp.get(i)),
-								episodeCache);
+						series.redownload();
+						System.out.println("Updating changed shows " + (i + 1)
+								+ "/" + temp.size());
 					} catch (IOException e) {
-						e.printStackTrace();
+						System.err.println("Failed to download: "
+								+ series.getSeriesName() + " : "
+								+ series.getSeriesId());
 					}
-
-					System.out.println("Updating changed shows " + (i + 1)
-							+ "/" + temp.size());
 				}
 				App.preferences
 						.edit()
@@ -121,38 +108,45 @@ public class UpdaterService extends Service {
 					}
 					for (String id : temp) {
 						if (!new File(UpdaterService.this.getCacheDir()
-								.getAbsolutePath(), "series/" + id).exists()) {
+								.getAbsolutePath(), "series/" + id).exists()
+								|| !new File(UpdaterService.this.getCacheDir()
+										.getAbsolutePath(), "episodes/" + id)
+										.exists()) {
 							updated.add(id);
 						}
 					}
+					temp.clear();
 
 					System.out.println("Updating changed shows 0/"
 							+ updated.size());
 
-					for (int i = 0; i < updated.size(); i++) {
-						File cache = new File(UpdaterService.this.getCacheDir()
-								.getAbsolutePath(), "series/" + temp.get(i));
-						try {
-							FileUtils.copyURLToFile(new URL(
-									"http://services.tvrage.com/feeds/full_show_info.php?sid="
-											+ updated.get(i)), cache);
+					LinkedList<Series> updatedSeries = new LinkedList<Series>();
+					for (Series series : App.shows) {
+						for (String id : updated) {
+							if (series.getSeriesId().equals(id)) {
+								updatedSeries.add(series);
+								break;
+							}
+						}
+					}
+					updated.clear();
 
+					for (int i = 0; i < updatedSeries.size(); i++) {
+						Series series = updatedSeries.get(i);
+						try {
+							series.redownload();
 							System.out.println("Updating changed shows "
-									+ (i + 1) + "/" + updated.size());
-						} catch (MalformedURLException e) {
-							e.printStackTrace();
+									+ (i + 1) + "/" + updatedSeries.size());
 						} catch (IOException e) {
-							cache.delete();
 							System.err.println("Failed to download: "
-									+ updated.get(i));
-							// e.printStackTrace();
+									+ series.getSeriesName() + " : "
+									+ series.getSeriesId());
 						}
 					}
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					System.err.println("Failed to download update file");
-					// e.printStackTrace();
 				}
 			}
 			tempFile.delete();

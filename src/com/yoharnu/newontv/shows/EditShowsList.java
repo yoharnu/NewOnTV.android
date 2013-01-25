@@ -1,8 +1,8 @@
-package com.yoharnu.newontv.android.shows;
+package com.yoharnu.newontv.shows;
 
-import com.yoharnu.newontv.android.App;
+import com.yoharnu.newontv.App;
+import com.yoharnu.newontv.Settings;
 import com.yoharnu.newontv.android.R;
-import com.yoharnu.newontv.android.Settings;
 
 import android.os.Build;
 import android.os.Bundle;

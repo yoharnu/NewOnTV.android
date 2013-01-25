@@ -1,4 +1,4 @@
-package com.yoharnu.newontv.android;
+package com.yoharnu.newontv;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,8 +22,8 @@ import com.dropbox.client2.exception.DropboxUnlinkedException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.Session.AccessType;
-import com.yoharnu.newontv.android.events.LoadingEvent;
-import com.yoharnu.newontv.android.shows.Series;
+import com.yoharnu.newontv.events.LoadingEvent;
+import com.yoharnu.newontv.shows.Series;
 
 import android.app.Activity;
 import android.app.Application;
@@ -80,14 +80,16 @@ public class App extends Application {
 
 	public static void add(String seriesId) {
 		Series temp = new Series(seriesId, Series.ID);
-		boolean present = false;
-		for (int i = 0; i < shows.size(); i++) {
-			if (shows.get(i).getSeriesId().equals(seriesId)) {
-				present = true;
+		if (temp.getSeriesName() != null) {
+			boolean present = false;
+			for (int i = 0; i < shows.size(); i++) {
+				if (shows.get(i).getSeriesId().equals(seriesId)) {
+					present = true;
+				}
 			}
-		}
-		if (!present) {
-			shows.add(temp);
+			if (!present) {
+				shows.add(temp);
+			}
 		}
 	}
 
@@ -283,7 +285,6 @@ public class App extends Application {
 									"shows");
 							Scanner s = new Scanner(shows);
 							App.shows.clear();
-							System.gc();
 
 							LinkedList<String> temp = new LinkedList<String>();
 							while (s.hasNextLine()) {
