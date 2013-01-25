@@ -41,6 +41,18 @@ public class ChooseSeries extends Activity {
 		}
 	}
 
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		for (File f : new File(
+				App.getContext().getCacheDir().getAbsolutePath(), "search")
+				.listFiles()) {
+			f.delete();
+		}
+		new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
+				.delete();
+	}
+
 	protected void onResume() {
 		super.onResume();
 		final ProgressDialog pd = new ProgressDialog(this);
@@ -53,7 +65,8 @@ public class ChooseSeries extends Activity {
 				s = new Series(App.preferences.getString("search", ""),
 						Series.NAME);
 				try {
-					FileUtils.copyURLToFile(new URL(s.url), new File(s.file));
+					FileUtils.copyURLToFile(new URL(s.seriesUrl), new File(
+							s.seriesFile));
 				} catch (MalformedURLException e) {
 					pd.dismiss();
 					e.printStackTrace();
@@ -62,7 +75,7 @@ public class ChooseSeries extends Activity {
 					e.printStackTrace();
 				}
 
-				File temp = new File(s.file);
+				File temp = new File(s.seriesFile);
 				Series.parseSearch(temp);
 				temp.delete();
 				if (App.preferences.getBoolean("only_show_running", false)) {
@@ -112,7 +125,9 @@ public class ChooseSeries extends Activity {
 								}
 								TextView overview = (TextView) findViewById(R.id.spins_overview);
 								overview.setText("First Aired: "
-										+ series.getFirstAired());
+										+ series.getFirstAired()
+										+ "\nSummary courtesy of tvrage.com: "
+										+ series.getSummary());
 								overview.setSingleLine(false);
 
 								overview.setVisibility(View.VISIBLE);
@@ -176,14 +191,6 @@ public class ChooseSeries extends Activity {
 				for (int i = 0; i < Series.options.size(); i++) {
 					if (text.equals(Series.options.get(i).getSeriesName())) {
 						App.add(Series.options.get(i).getSeriesId());
-					} else {
-						for (int j = 0; j < App.shows.size(); j++) {
-							if (!Series.options.get(i).getSeriesId()
-									.equals(App.shows.get(j).getSeriesId())
-									&& Series.options.get(i).getCache() != null) {
-								Series.options.get(i).getCache().delete();
-							}
-						}
 					}
 				}
 				App.preferences.edit().remove("db-shows-rev").commit();

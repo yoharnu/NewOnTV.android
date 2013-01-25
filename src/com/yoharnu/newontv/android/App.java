@@ -36,9 +36,7 @@ import android.util.Log;
 
 public class App extends Application {
 
-	public static final String MIRRORPATH = "http://thetvdb.com";
-	public static final String LANGUAGE = "en";
-	public static final String API_KEY = "768A3A72ACDABC4A";
+	public static final String API_KEY = "ogANe1zEs1OHNs7OUO5I";
 	protected static Context context;
 	public static SharedPreferences preferences;
 	public static LinkedList<Series> shows;
@@ -285,12 +283,14 @@ public class App extends Application {
 									"shows");
 							Scanner s = new Scanner(shows);
 							App.shows.clear();
+							System.gc();
+
 							LinkedList<String> temp = new LinkedList<String>();
 							while (s.hasNextLine()) {
 								temp.add(s.nextLine());
 							}
 							s.close();
-							
+
 							{
 								final int workaround = temp.size();
 								activity.runOnUiThread(new Runnable() {
@@ -306,6 +306,7 @@ public class App extends Application {
 								activity.runOnUiThread(new Runnable() {
 									public void run() {
 										pd.setProgress(workaround);
+
 									}
 								});
 							}

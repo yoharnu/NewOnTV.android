@@ -23,11 +23,15 @@ public class Series {
 	private String network = null;
 	private String status;
 	private String numSeasons;
+	private String summary;
 	public LinkedList<Episode> episodes;
-	private File cache = null;
 	public static LinkedList<Series> options = null;
-	public String url;
-	public String file;
+	private File seriesCache = null;
+	public String seriesUrl;
+	public String seriesFile;
+	private File episodeCache = null;
+	public String episodeUrl;
+	public String episodeFile;
 	private String classification;
 	private TimeZone timeZone;
 
@@ -46,9 +50,10 @@ public class Series {
 	}
 
 	private void setupSeriesByName(final String search) {
-		url = "http://services.tvrage.com/feeds/full_search.php?show="
-				+ search.replaceAll(" ", "%20");
-		file = App.getContext().getCacheDir().getAbsolutePath() + "/search";
+		seriesUrl = "http://services.tvrage.com/myfeeds/search.php?key="
+				+ App.API_KEY + "&show=" + search.replaceAll(" ", "%20");
+		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
+				+ "/search/search";
 	}
 
 	public static void parseSearch(File search) {
@@ -57,25 +62,25 @@ public class Series {
 			Scanner s = new Scanner(search);
 			while (s.hasNextLine()) {
 				String line = s.nextLine();
-				if ((XMLParser.getTag(line).equals("show") || XMLParser.getTag(
-						line).equals("name"))
-						&& s.hasNextLine()) {
+				String tag = XMLParser.getTag(line);
+				String data = XMLParser.getData(line);
+
+				if (tag.equals("showid")) {
 					Series temp = new Series();
-					while (!XMLParser.getTag(line).equals("/show")
-							&& s.hasNextLine()) {
-						line = s.nextLine();
-						String tag = XMLParser.getTag(line);
-						String data = XMLParser.getData(line);
-						if (tag.equals("showid")) {
-							temp.seriesid = data;
-						} else if (tag.equals("name")) {
-							temp.seriesName = data.replaceAll("&#39;", "'");
-						} else if (tag.equals("started")) {
-							temp.firstAired = data;
-						} else if (tag.equals("status")) {
-							temp.status = data;
+					temp.seriesFile = App.getContext().getCacheDir()
+							.getAbsolutePath()
+							+ "/search/" + data;
+					temp.seriesCache = new File(temp.seriesFile);
+					if (!temp.seriesCache.exists()) {
+						try {
+							temp.seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
+									+ App.API_KEY + "&sid=" + data;
+							FileUtils.copyURLToFile(new URL(temp.seriesUrl),
+									temp.seriesCache);
+						} catch (IOException e) {
 						}
 					}
+					temp.parse();
 					options.add(temp);
 				}
 			}
@@ -89,18 +94,62 @@ public class Series {
 
 	public void setupSeriesById(final String id) {
 		this.seriesid = id;
-		file = App.getContext().getCacheDir().getAbsolutePath() + "/series/"
-				+ id;
-		cache = new File(file);
-		if (!cache.exists()) {
+		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
+				+ "/series/" + id;
+		seriesCache = new File(seriesFile);
+		if (!seriesCache.exists()) {
 			try {
-				url = "http://services.tvrage.com/feeds/full_show_info.php?sid="
-						+ id;
-				FileUtils.copyURLToFile(new URL(url), cache);
+				seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
+						+ App.API_KEY + "&sid=" + id;
+				FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
 			} catch (IOException e) {
 			}
 		}
 		parse();
+		fetchEpisodeInfo();
+	}
+
+	private void fetchEpisodeInfo() {
+		episodeFile = App.getContext().getCacheDir().getAbsolutePath()
+				+ "/episodes/" + seriesid;
+		episodeCache = new File(episodeFile);
+		if (!episodeCache.exists()) {
+			try {
+				episodeUrl = "http://services.tvrage.com/myfeeds/episode_list.php?key="
+						+ App.API_KEY + "&sid=" + seriesid;
+				FileUtils.copyURLToFile(new URL(episodeUrl), episodeCache);
+			} catch (IOException e) {
+			}
+		}
+
+		Scanner s;
+		try {
+			s = new Scanner(episodeCache);
+			String currSeason = "";
+			while (s.hasNextLine()) {
+				String line = s.nextLine();
+				String tag = XMLParser.getTag(line);
+				String data = XMLParser.getData(line);
+				if (data == null) {
+					data = "Not Available";
+				}
+				if (tag.equals("episode")) {
+					episodes.add(new Episode(line, currSeason, this));
+				} else if (tag.contains("Season no=")) {
+					String temp = tag.split("\"")[1].split("\"")[0];
+					currSeason = "s";
+					if (Integer.parseInt(temp) < 10) {
+						currSeason += "0";
+					}
+					currSeason += temp;
+				} else if (tag.equals("Special")) {
+					break;
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public String getSeriesName() {
@@ -113,8 +162,7 @@ public class Series {
 
 	public void parse() {
 		try {
-			Scanner s = new Scanner(cache);
-			String currSeason = "";
+			Scanner s = new Scanner(seriesCache);
 			while (s.hasNextLine()) {
 				String line = s.nextLine();
 				String tag = XMLParser.getTag(line);
@@ -123,9 +171,15 @@ public class Series {
 					data = "Not Available";
 				}
 				if (tag.equals("name") || tag.equals("showname")) {
-					seriesName = data.replaceAll("&#39;", "'");
+					seriesName = data.replaceAll("&#39;", "'")
+							.replaceAll("&quot;", "\"")
+							.replaceAll("&", "&amp;");
 				} else if (tag.equals("started") || tag.equals("startdate")) {
 					firstAired = data;
+				} else if (tag.equals("summary")) {
+					summary = data.replaceAll("&#39;", "'")
+							.replaceAll("&quot;", "\"")
+							.replaceAll("&", "&amp;");
 				} else if (tag.equals("airtime")) {
 					airTime = data;
 				} else if (tag.contains("etwork") && !tag.contains("/")) {
@@ -140,17 +194,6 @@ public class Series {
 					timeZone = TimeZone.getTimeZone(splits[0]);
 				} else if (tag.equals("classification")) {
 					classification = data;
-				} else if (tag.equals("episode")) {
-					episodes.add(new Episode(line, currSeason, this));
-				} else if (tag.contains("Season no=")) {
-					String temp = tag.split("\"")[1].split("\"")[0];
-					currSeason = "s";
-					if (Integer.parseInt(temp) < 10) {
-						currSeason += "0";
-					}
-					currSeason += temp;
-				} else if (tag.equals("Special")) {
-					break;
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -175,9 +218,9 @@ public class Series {
 
 	public void redownload() {
 		try {
-			url = "http://services.tvrage.com/feeds/full_show_info.php?sid="
+			seriesUrl = "http://services.tvrage.com/feeds/full_show_info.php?sid="
 					+ seriesid;
-			FileUtils.copyURLToFile(new URL(url), cache);
+			FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
 		} catch (IOException e) {
 		}
 	}
@@ -219,7 +262,11 @@ public class Series {
 	}
 
 	public File getCache() {
-		return cache;
+		return seriesCache;
+	}
+
+	public String getSummary() {
+		return summary;
 	}
 
 }
