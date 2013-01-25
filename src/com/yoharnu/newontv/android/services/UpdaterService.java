@@ -56,13 +56,23 @@ public class UpdaterService extends Service {
 				System.out.println("Checking for updates 1/1");
 				System.out.println("Updating changed shows 0/" + temp.size());
 				for (int i = 0; i < temp.size(); i++) {
-					File cache = new File(UpdaterService.this.getCacheDir()
-							.getAbsolutePath(), "series/" + temp.get(i));
-					cache.delete();
+					File seriesCache = new File(UpdaterService.this
+							.getCacheDir().getAbsolutePath(), "series/"
+							+ temp.get(i));
+					seriesCache.delete();
+					File episodeCache = new File(App.getContext().getCacheDir()
+							.getAbsolutePath(), "episodes/" + temp.get(i));
+					episodeCache.delete();
+
 					try {
 						FileUtils.copyURLToFile(new URL(
-								"http://services.tvrage.com/feeds/full_show_info.php?sid="
-										+ temp.get(i)), cache);
+								"http://services.tvrage.com/myfeeds/showinfo.php?key="
+										+ App.API_KEY + "&sid=" + temp.get(i)),
+								seriesCache);
+						FileUtils.copyURLToFile(new URL(
+								"http://services.tvrage.com/myfeeds/episode_list.php?key="
+										+ App.API_KEY + "&sid=" + temp.get(i)),
+								episodeCache);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -80,8 +90,9 @@ public class UpdaterService extends Service {
 				try {
 					lastUpdated = new GregorianCalendar().getTimeInMillis()
 							- lastUpdated;
-					//if (lastUpdated / 3600000.0 >= 1) {
-						lastUpdated = (long) Math.ceil(lastUpdated / 3600000.0 + 12);
+					if (lastUpdated / 3600000.0 >= 1) {
+						lastUpdated = (long) Math
+								.ceil(lastUpdated / 3600000.0 + 12);
 						FileUtils.copyURLToFile(new URL(
 								"http://services.tvrage.com/feeds/last_updates.php?hours="
 										+ lastUpdated), tempFile);
@@ -107,7 +118,7 @@ public class UpdaterService extends Service {
 							}
 						}
 						s1.close();
-				//	}
+					}
 					for (String id : temp) {
 						if (!new File(UpdaterService.this.getCacheDir()
 								.getAbsolutePath(), "series/" + id).exists()) {
@@ -134,14 +145,14 @@ public class UpdaterService extends Service {
 							cache.delete();
 							System.err.println("Failed to download: "
 									+ updated.get(i));
-							//e.printStackTrace();
+							// e.printStackTrace();
 						}
 					}
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					System.err.println("Failed to download update file");
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 			tempFile.delete();
