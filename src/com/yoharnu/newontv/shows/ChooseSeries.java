@@ -23,12 +23,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 
 public class ChooseSeries extends Activity {
-	Series s;
+	private Series s;
 
 	@SuppressLint("NewApi")
 	@Override
@@ -44,13 +45,10 @@ public class ChooseSeries extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		for (File f : new File(
-				App.getContext().getCacheDir().getAbsolutePath(), "search")
-				.listFiles()) {
+		for (File f : new File(this.getCacheDir(), "search").listFiles()) {
 			f.delete();
 		}
-		new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
-				.delete();
+		new File(this.getCacheDir(), "search").delete();
 	}
 
 	protected void onResume() {
@@ -120,6 +118,7 @@ public class ChooseSeries extends Activity {
 									if (name.equals(Series.options.get(i)
 											.getSeriesName())) {
 										series = Series.options.get(i);
+										s = Series.options.get(i);
 										break;
 									}
 								}
@@ -130,7 +129,7 @@ public class ChooseSeries extends Activity {
 										+ series.getSummary());
 								overview.setSingleLine(false);
 
-								overview.setVisibility(View.VISIBLE);
+								//overview.setVisibility(View.VISIBLE);
 							}
 
 							@Override
@@ -204,6 +203,12 @@ public class ChooseSeries extends Activity {
 
 	public void cancel(View view) {
 		this.finish();
+	}
+	
+	public void details(View view){
+		Intent intent = new Intent(this, SeriesDisplay.class);
+		intent.putExtra("series", s.seriesid);
+		startActivity(intent);
 	}
 
 }

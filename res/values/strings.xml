@@ -31,5 +31,7 @@
     <string name="settings_clear_list">Delete All Shows&#8230;</string>
     <string name="defaultDate">01-01-2000</string>
     <string name="today">Today</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_series_display">SeriesDisplay</string>
 
 </resources>

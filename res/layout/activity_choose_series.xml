@@ -12,18 +12,27 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true" />
+    
+    <Button
+        android:id="@+id/details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spins"
+        android:onClick="details"
+        android:text="Details"
+        android:visibility="visible" />
 
     <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@+id/spins_choose"
-        android:layout_below="@id/spins" >
+        android:layout_below="@id/details" >
 
         <TextView
             android:id="@+id/spins_overview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="visible" />
+            android:visibility="gone" />
     </ScrollView>
 
     <Button
