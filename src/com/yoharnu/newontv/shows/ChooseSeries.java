@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.view.Menu;
@@ -45,15 +44,13 @@ public class ChooseSeries extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
-				.listFiles() != null) {
-			for (File f : new File(App.getContext().getCacheDir()
-					.getAbsolutePath(), "search").listFiles()) {
-				f.delete();
-			}
-			new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
-					.delete();
+		for (File f : new File(
+				App.getContext().getCacheDir().getAbsolutePath(), "search")
+				.listFiles()) {
+			f.delete();
 		}
+		new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
+				.delete();
 	}
 
 	protected void onResume() {
@@ -76,13 +73,12 @@ public class ChooseSeries extends Activity {
 				} catch (IOException e) {
 					pd.dismiss();
 					e.printStackTrace();
-					new AlertDialog.Builder(ChooseSeries.this).setMessage("");
 				}
 
 				File temp = new File(s.seriesFile);
 				Series.parseSearch(temp);
 				temp.delete();
-				if (App.preferences.getBoolean("only_show_running", true)) {
+				if (App.preferences.getBoolean("only_show_running", false)) {
 					LinkedList<Series> tempOptions = new LinkedList<Series>();
 					for (int i = 0; i < Series.options.size(); i++) {
 						tempOptions.add(Series.options.get(i));
@@ -92,7 +88,7 @@ public class ChooseSeries extends Activity {
 						if (s.getStatus() == null) {
 							System.out.println(s.getSeriesName());
 						}
-						else if (!s.getStatus().equals("Canceled/Ended")
+						if (!s.getStatus().equals("Canceled/Ended")
 								&& !s.getStatus().equals("Pilot Rejected")
 								&& !s.getStatus().equals("Never Aired")) {
 							Series.options.add(s);
