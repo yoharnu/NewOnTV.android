@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.view.Menu;
@@ -24,12 +23,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 
 public class ChooseSeries extends Activity {
-	Series s;
+	private Series s;
 
 	@SuppressLint("NewApi")
 	@Override
@@ -45,15 +45,10 @@ public class ChooseSeries extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
-				.listFiles() != null) {
-			for (File f : new File(App.getContext().getCacheDir()
-					.getAbsolutePath(), "search").listFiles()) {
-				f.delete();
-			}
-			new File(App.getContext().getCacheDir().getAbsolutePath(), "search")
-					.delete();
+		for (File f : new File(this.getCacheDir(), "search").listFiles()) {
+			f.delete();
 		}
+		new File(this.getCacheDir(), "search").delete();
 	}
 
 	protected void onResume() {
@@ -76,13 +71,12 @@ public class ChooseSeries extends Activity {
 				} catch (IOException e) {
 					pd.dismiss();
 					e.printStackTrace();
-					new AlertDialog.Builder(ChooseSeries.this).setMessage("");
 				}
 
 				File temp = new File(s.seriesFile);
 				Series.parseSearch(temp);
 				temp.delete();
-				if (App.preferences.getBoolean("only_show_running", true)) {
+				if (App.preferences.getBoolean("only_show_running", false)) {
 					LinkedList<Series> tempOptions = new LinkedList<Series>();
 					for (int i = 0; i < Series.options.size(); i++) {
 						tempOptions.add(Series.options.get(i));
@@ -92,7 +86,7 @@ public class ChooseSeries extends Activity {
 						if (s.getStatus() == null) {
 							System.out.println(s.getSeriesName());
 						}
-						else if (!s.getStatus().equals("Canceled/Ended")
+						if (!s.getStatus().equals("Canceled/Ended")
 								&& !s.getStatus().equals("Pilot Rejected")
 								&& !s.getStatus().equals("Never Aired")) {
 							Series.options.add(s);
@@ -124,6 +118,7 @@ public class ChooseSeries extends Activity {
 									if (name.equals(Series.options.get(i)
 											.getSeriesName())) {
 										series = Series.options.get(i);
+										s = Series.options.get(i);
 										break;
 									}
 								}
@@ -134,7 +129,7 @@ public class ChooseSeries extends Activity {
 										+ series.getSummary());
 								overview.setSingleLine(false);
 
-								overview.setVisibility(View.VISIBLE);
+								//overview.setVisibility(View.VISIBLE);
 							}
 
 							@Override
@@ -208,6 +203,12 @@ public class ChooseSeries extends Activity {
 
 	public void cancel(View view) {
 		this.finish();
+	}
+	
+	public void details(View view){
+		Intent intent = new Intent(this, SeriesDisplay.class);
+		intent.putExtra("series", s.seriesid);
+		startActivity(intent);
 	}
 
 }

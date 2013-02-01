@@ -16,24 +16,25 @@ import com.yoharnu.newontv.App;
 public class Series {
 	public static final int NAME = 0;
 	public static final int ID = 1;
-	private String seriesid;
-	private String seriesName;
-	private String firstAired;
-	private String airTime = null;
-	private String network = null;
-	private String status;
-	private String numSeasons;
-	private String summary;
-	public LinkedList<Episode> episodes;
+	protected String seriesid;
+	protected String seriesName;
+	protected String firstAired;
+	protected String airTime = null;
+	protected String network = null;
+	protected String status;
+	protected String numSeasons;
+	protected String summary;
+	protected LinkedList<Episode> episodes;
 	public static LinkedList<Series> options = null;
-	private File seriesCache = null;
-	public String seriesUrl;
-	public String seriesFile;
-	private File episodeCache = null;
-	public String episodeUrl;
-	public String episodeFile;
-	private String classification;
-	private TimeZone timeZone;
+	protected File seriesCache = null;
+	protected String seriesUrl;
+	protected String seriesFile;
+	protected File episodeCache = null;
+	protected String episodeUrl;
+	protected String episodeFile;
+	protected String imageUrl; 
+	protected String classification;
+	protected TimeZone timeZone;
 
 	public Series(final String text, int mode) {
 		episodes = new LinkedList<Episode>();
@@ -56,7 +57,7 @@ public class Series {
 				+ "/search/search";
 	}
 
-	public static void parseSearch(File search) {
+	protected static void parseSearch(File search) {
 		options = new LinkedList<Series>();
 		try {
 			Scanner s = new Scanner(search);
@@ -92,7 +93,7 @@ public class Series {
 
 	}
 
-	public void setupSeriesById(final String id) {
+	protected void setupSeriesById(final String id) {
 		this.seriesid = id;
 		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
 				+ "/series/" + seriesid;
@@ -163,7 +164,7 @@ public class Series {
 		return this.seriesid;
 	}
 
-	public void parse() {
+	protected void parse() {
 		try {
 			Scanner s = new Scanner(seriesCache);
 			while (s.hasNextLine()) {
@@ -193,6 +194,8 @@ public class Series {
 					status = data;
 				} else if (tag.equals("seasons")) {
 					numSeasons = data;
+				} else if (tag.equals("image")) {
+					imageUrl = data;
 				} else if (tag.equals("timezone")) {
 					String temp = data;
 					String[] splits = temp.split(" ");
@@ -285,7 +288,7 @@ public class Series {
 		return summary;
 	}
 
-	public void deleteCache() {
+	protected void deleteCache() {
 		seriesCache.delete();
 		episodeCache.delete();
 	}
