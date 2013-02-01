@@ -103,6 +103,8 @@ public class Series {
 						+ App.API_KEY + "&sid=" + seriesid;
 				FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
 			} catch (IOException e) {
+				e.printStackTrace();
+				return;
 			}
 		}
 		parse();
@@ -119,6 +121,8 @@ public class Series {
 						+ App.API_KEY + "&sid=" + seriesid;
 				FileUtils.copyURLToFile(new URL(episodeUrl), episodeCache);
 			} catch (IOException e) {
+				e.printStackTrace();
+				return;
 			}
 		}
 
@@ -147,7 +151,6 @@ public class Series {
 				}
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -182,6 +185,8 @@ public class Series {
 							.replaceAll("&amp;", "&");
 				} else if (tag.equals("airtime")) {
 					airTime = data;
+				} else if (tag.equals("showid")) {
+					seriesid = data;
 				} else if (tag.contains("etwork") && !tag.contains("/")) {
 					network = data;
 				} else if (tag.equals("status")) {

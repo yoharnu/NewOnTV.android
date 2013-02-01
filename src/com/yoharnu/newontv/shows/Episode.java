@@ -31,7 +31,7 @@ public class Episode {
 						.replaceAll("&quot;", "\"").replaceAll("&amp;", "&");
 		}
 		String temp = line.split("<airdate>")[1].split("</airdate>")[0];
-		airDate = new GregorianCalendar(parent.getTimeZone());
+		airDate = new GregorianCalendar();
 		splits = temp.split("-");
 		String[] splitParent = parent.getAirTime().split(":");
 		airDate.set(Integer.valueOf(splits[0]), Integer.valueOf(splits[1]) - 1,

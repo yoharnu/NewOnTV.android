@@ -80,16 +80,14 @@ public class App extends Application {
 
 	public static void add(String seriesId) {
 		Series temp = new Series(seriesId, Series.ID);
-		if (temp.getSeriesName() != null) {
-			boolean present = false;
-			for (int i = 0; i < shows.size(); i++) {
-				if (shows.get(i).getSeriesId().equals(seriesId)) {
-					present = true;
-				}
+		boolean present = false;
+		for (int i = 0; i < shows.size(); i++) {
+			if (shows.get(i).getSeriesId().equals(seriesId)) {
+				present = true;
 			}
-			if (!present) {
-				shows.add(temp);
-			}
+		}
+		if (!present) {
+			shows.add(temp);
 		}
 	}
 
