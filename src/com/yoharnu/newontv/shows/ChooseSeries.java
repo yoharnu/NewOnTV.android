@@ -23,7 +23,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
@@ -51,8 +50,8 @@ public class ChooseSeries extends Activity {
 		new File(this.getCacheDir(), "search").delete();
 	}
 
-	protected void onResume() {
-		super.onResume();
+	protected void onStart() {
+		super.onStart();
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);

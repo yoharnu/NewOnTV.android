@@ -51,11 +51,22 @@ public class EditShowsList extends Activity {
 
 		TextView viewShows = new TextView(App.getContext());
 		viewShows.setText(getString(R.string.viewShowsList));
+		viewShows.setTextSize(20);
 		ll.addView(viewShows);
 
 		for (int i = 0; i < App.shows.size(); i++) {
 			TextView temp = new TextView(App.getContext());
-			temp.setText((i + 1) + ". " + App.shows.get(i).getSeriesName());
+			final Series s=App.shows.get(i);
+			temp.setText((i + 1) + ". " + s.getSeriesName());
+			temp.setTextSize(20);
+			temp.setClickable(true);
+			temp.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent intent = new Intent(EditShowsList.this, SeriesDisplay.class);
+					intent.putExtra("series", s.seriesid);
+					startActivity(intent);
+				}
+			});
 			ll.addView(temp);
 		}
 	}
