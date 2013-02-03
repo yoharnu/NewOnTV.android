@@ -57,10 +57,13 @@ public class SeriesDisplay extends Activity {
 				this.series = series;
 			}
 		}
-		final ImageView image = new ImageView(SeriesDisplay.this);
+		
 		final File imageFile = new File(SeriesDisplay.this.getCacheDir(),
 				"images/" + series.seriesid);
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_series_display);
+		
+		final ImageView image = new ImageView(SeriesDisplay.this);
+		image.setAdjustViewBounds(true);
 		layout.addView(image);
 
 		TextView title = new TextView(SeriesDisplay.this);
@@ -84,7 +87,7 @@ public class SeriesDisplay extends Activity {
 		layout.addView(type);
 
 		TextView summary = new TextView(SeriesDisplay.this);
-		summary.setText("Summary (courtesy of tvrage.com): " + series.summary);
+		summary.setText("Summary (courtesy of tvrage.com):\n" + series.summary);
 		summary.setSingleLine(false);
 		layout.addView(summary);
 		

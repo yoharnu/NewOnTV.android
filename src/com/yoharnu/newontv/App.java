@@ -305,7 +305,6 @@ public class App extends Application {
 								activity.runOnUiThread(new Runnable() {
 									public void run() {
 										pd.setProgress(workaround);
-
 									}
 								});
 							}
@@ -314,7 +313,8 @@ public class App extends Application {
 						}
 						activity.runOnUiThread(new Runnable() {
 							public void run() {
-								pd.dismiss();
+								if (pd.isShowing())
+									pd.dismiss();
 							}
 						});
 						LoadingEvent.done();

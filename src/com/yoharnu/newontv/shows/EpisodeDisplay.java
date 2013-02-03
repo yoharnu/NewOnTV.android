@@ -58,12 +58,14 @@ public class EpisodeDisplay extends Activity {
 			}
 		}
 
-		final ImageView image = new ImageView(this);
 		final File imageFile = new File(this.getCacheDir(), "images/"
 				+ series.seriesid + "/" + episode.getSeason()
 				+ episode.getEpisode());
 
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_episode_display);
+		
+		final ImageView image = new ImageView(this);
+		image.setAdjustViewBounds(true);
 		layout.addView(image);
 
 		TextView seriesName = new TextView(this);
