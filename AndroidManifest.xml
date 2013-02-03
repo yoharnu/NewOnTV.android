@@ -78,6 +78,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.shows.EditShowsList" />
         </activity>
+        <activity
+            android:name="com.yoharnu.newontv.shows.EpisodeDisplay"
+            android:label="@string/title_activity_episode_display" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.yoharnu.newontv.NewOnTV" />
+        </activity>
     </application>
 
 </manifest>

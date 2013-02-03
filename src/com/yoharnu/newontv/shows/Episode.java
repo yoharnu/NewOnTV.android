@@ -3,6 +3,9 @@ package com.yoharnu.newontv.shows;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.view.View;
 import android.widget.TextView;
 
 import com.yoharnu.newontv.App;
@@ -12,6 +15,7 @@ public class Episode {
 	private String episode;
 	private String epName;
 	private String summary;
+	private String screencap;
 	private GregorianCalendar airDate;
 	private Series parent;
 
@@ -25,10 +29,17 @@ public class Episode {
 		String[] splits = line.split("<summary>");
 		summary = "Not Available";
 		if (splits.length > 1) {
-			splits = splits[1].split("</summary");
+			splits = splits[1].split("</summary>");
 			if (splits.length > 0)
 				summary = splits[0].replaceAll("&#39;", "'")
 						.replaceAll("&quot;", "\"").replaceAll("&amp;", "&");
+		}
+		screencap = null;
+		splits = line.split("<screencap>");
+		if (splits.length > 1) {
+			splits = splits[1].split("</screencap>");
+			if (splits.length > 0)
+				screencap = splits[0];
 		}
 		String temp = line.split("<airdate>")[1].split("</airdate>")[0];
 		airDate = new GregorianCalendar();
@@ -45,15 +56,25 @@ public class Episode {
 		// GregorianCalendar().get(Calendar.ZONE_OFFSET));
 	}
 
-	public TextView print() {
+	public TextView print(final Activity activity) {
 		TextView returnVal = new TextView(App.getContext());
-		String text = parent.getSeriesName() + "          " + season + episode
-				+ "\n          " + epName + "\n          "
-				+ parent.getNetwork() + "\n          Summary: " + summary;
+		String text = parent.getSeriesName() + "          "
+				+ parent.getNetwork();
 		returnVal.setText(text);
 		returnVal.setPadding(returnVal.getPaddingLeft() + 50,
 				returnVal.getPaddingTop(), returnVal.getPaddingRight(),
 				returnVal.getPaddingBottom());
+
+		returnVal.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Intent intent = new Intent(activity, EpisodeDisplay.class);
+				intent.putExtra("series", parent.getSeriesId());
+				intent.putExtra("season", season);
+				intent.putExtra("episode", episode);
+				activity.startActivity(intent);
+			}
+		});
+		returnVal.setTextSize(20);
 		return returnVal;
 	}
 
@@ -85,4 +106,13 @@ public class Episode {
 		}
 		return list;
 	}
+
+	public String getScreencap() {
+		return screencap;
+	}
+
+	public String getSummary() {
+		return summary;
+	}
+
 }

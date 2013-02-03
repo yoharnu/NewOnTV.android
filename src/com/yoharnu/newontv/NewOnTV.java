@@ -30,14 +30,10 @@ import android.widget.TextView;
 public class NewOnTV extends Activity {
 	ProgressDialog pd = null;
 
-	// protected boolean starting;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_new_on_tv);
-
-		// starting = true;
 
 		LoadingEvent.addLoadingListener(new LoadingListener() {
 			@Override
@@ -45,7 +41,8 @@ public class NewOnTV extends Activity {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						NewOnTV.this.startService(new Intent(NewOnTV.this, UpdaterService.class));
+						NewOnTV.this.startService(new Intent(NewOnTV.this,
+								UpdaterService.class));
 						refresh();
 					}
 				});
@@ -69,7 +66,6 @@ public class NewOnTV extends Activity {
 	protected void onPause() {
 		super.onPause();
 
-		App.today = new GregorianCalendar();
 		if (pd != null && pd.isShowing()) {
 			pd.dismiss();
 		}
@@ -134,19 +130,20 @@ public class NewOnTV extends Activity {
 			if (!newTime.equals(currTime)) {
 				TextView time = new TextView(App.getContext());
 				time.setText(newTime);
+				time.setTextSize(20);
 				ll.addView(time);
 			}
 			currTime = newTime;
-			ll.addView(e.print());
+			ll.addView(e.print(this));
 		}
 
 		if (tonight.isEmpty()) {
 			TextView nothing = new TextView(App.getContext());
 			nothing.setText("There is nothing new on tonight.");
+			nothing.setTextSize(20);
 			ll.addView(nothing);
 		}
 		App.setChanged(false);
-		// starting = false;
 	}
 
 	@Override

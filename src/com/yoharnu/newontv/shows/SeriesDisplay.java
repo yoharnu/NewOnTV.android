@@ -7,6 +7,7 @@ import java.net.URL;
 
 import org.apache.commons.io.FileUtils;
 
+import com.yoharnu.newontv.App;
 import com.yoharnu.newontv.android.R;
 
 import android.net.Uri;
@@ -14,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -40,6 +40,9 @@ public class SeriesDisplay extends Activity {
 		super.onDestroy();
 		if (new File(this.getCacheDir(), "images").listFiles() != null)
 			for (File f : new File(this.getCacheDir(), "images").listFiles()) {
+				if (f.isDirectory() && f.listFiles() != null)
+					for (File f2 : f.listFiles())
+						f2.delete();
 				f.delete();
 			}
 		new File(this.getCacheDir(), "images").delete();
@@ -47,20 +50,44 @@ public class SeriesDisplay extends Activity {
 
 	protected void onStart() {
 		super.onStart();
-
-		final ProgressDialog pd = new ProgressDialog(this);
-		pd.setMessage("Loading...");
-		pd.setIndeterminate(true);
-		pd.setCancelable(false);
-		pd.show();
+		String s = SeriesDisplay.this.getIntent().getExtras()
+				.getString("series");
+		for (Series series : App.shows) {
+			if (series.getSeriesId().equals(s)) {
+				this.series = series;
+			}
+		}
 		final ImageView image = new ImageView(SeriesDisplay.this);
+		final File imageFile = new File(SeriesDisplay.this.getCacheDir(),
+				"images/" + series.seriesid);
+		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_series_display);
+		layout.addView(image);
+
+		TextView title = new TextView(SeriesDisplay.this);
+		title.setText("Title: " + series.seriesName);
+		layout.addView(title);
+
+		TextView network = new TextView(SeriesDisplay.this);
+		network.setText("Network: " + series.network);
+		layout.addView(network);
+
+		TextView firstAired = new TextView(SeriesDisplay.this);
+		firstAired.setText("First Aired: " + series.firstAired);
+		layout.addView(firstAired);
+
+		TextView status = new TextView(SeriesDisplay.this);
+		status.setText("Status: " + series.status);
+		layout.addView(status);
+
+		TextView type = new TextView(SeriesDisplay.this);
+		type.setText("Type: " + series.classification);
+		layout.addView(type);
+
+		TextView summary = new TextView(SeriesDisplay.this);
+		summary.setText("Summary (courtesy of tvrage.com):\n" + series.summary);
+		layout.addView(summary);
 		new Thread(new Runnable() {
 			public void run() {
-				series = new Series(SeriesDisplay.this.getIntent().getExtras()
-						.getString("series"), Series.ID);
-				final File imageFile = new File(
-						SeriesDisplay.this.getCacheDir(), "images/"
-								+ series.seriesid);
 				try {
 					if (!imageFile.exists()) {
 						FileUtils.copyURLToFile(new URL(series.imageUrl),
@@ -76,38 +103,6 @@ public class SeriesDisplay extends Activity {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				SeriesDisplay.this.runOnUiThread(new Runnable() {
-					public void run() {
-						pd.dismiss();
-						LinearLayout layout = (LinearLayout) findViewById(R.id.layout_series_display);
-						layout.addView(image);
-
-						TextView title = new TextView(SeriesDisplay.this);
-						title.setText("Title: " + series.seriesName);
-						layout.addView(title);
-
-						TextView network = new TextView(SeriesDisplay.this);
-						network.setText("Network: " + series.network);
-						layout.addView(network);
-
-						TextView firstAired = new TextView(SeriesDisplay.this);
-						firstAired.setText("First Aired: " + series.firstAired);
-						layout.addView(firstAired);
-
-						TextView status = new TextView(SeriesDisplay.this);
-						status.setText("Status: " + series.status);
-						layout.addView(status);
-
-						TextView type = new TextView(SeriesDisplay.this);
-						type.setText("Type: " + series.classification);
-						layout.addView(type);
-
-						TextView summary = new TextView(SeriesDisplay.this);
-						summary.setText("Summary (courtesy of tvrage.com): "
-								+ series.summary);
-						layout.addView(summary);
-					}
-				});
 			}
 		}).start();
 	}

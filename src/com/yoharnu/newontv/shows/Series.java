@@ -32,7 +32,7 @@ public class Series {
 	protected File episodeCache = null;
 	protected String episodeUrl;
 	protected String episodeFile;
-	protected String imageUrl; 
+	protected String imageUrl;
 	protected String classification;
 	protected TimeZone timeZone;
 
@@ -289,8 +289,10 @@ public class Series {
 	}
 
 	protected void deleteCache() {
-		seriesCache.delete();
-		episodeCache.delete();
+		if (seriesCache != null)
+			seriesCache.delete();
+		if (episodeCache != null)
+			episodeCache.delete();
 	}
 
 }
