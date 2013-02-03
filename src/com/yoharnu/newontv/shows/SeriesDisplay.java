@@ -84,8 +84,10 @@ public class SeriesDisplay extends Activity {
 		layout.addView(type);
 
 		TextView summary = new TextView(SeriesDisplay.this);
-		summary.setText("Summary (courtesy of tvrage.com):\n" + series.summary);
+		summary.setText("Summary (courtesy of tvrage.com): " + series.summary);
+		summary.setSingleLine(false);
 		layout.addView(summary);
+		
 		new Thread(new Runnable() {
 			public void run() {
 				try {

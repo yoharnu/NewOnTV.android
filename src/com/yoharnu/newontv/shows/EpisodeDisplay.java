@@ -92,6 +92,7 @@ public class EpisodeDisplay extends Activity {
 		TextView summary = new TextView(this);
 		summary.setText("Summary (courtesy of tvrage.com):\n"
 				+ episode.getSummary());
+		summary.setSingleLine(false);
 		layout.addView(summary);
 
 		new Thread(new Runnable() {
