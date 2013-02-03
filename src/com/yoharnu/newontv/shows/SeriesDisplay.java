@@ -36,32 +36,31 @@ public class SeriesDisplay extends Activity {
 		}
 	}
 
-	protected void onDestroy() {
-		super.onDestroy();
-		if (new File(this.getCacheDir(), "images").listFiles() != null)
-			for (File f : new File(this.getCacheDir(), "images").listFiles()) {
-				if (f.isDirectory() && f.listFiles() != null)
-					for (File f2 : f.listFiles())
-						f2.delete();
-				f.delete();
-			}
-		new File(this.getCacheDir(), "images").delete();
-	}
-
 	protected void onStart() {
 		super.onStart();
 		String s = SeriesDisplay.this.getIntent().getExtras()
 				.getString("series");
+		series = null;
 		for (Series series : App.shows) {
 			if (series.getSeriesId().equals(s)) {
 				this.series = series;
+				break;
 			}
 		}
-		
+		if (series == null)
+			for (Series series : Series.options) {
+				if (series.getSeriesId().equals(s)) {
+					this.series = series;
+					break;
+				}
+			}
+
 		final File imageFile = new File(SeriesDisplay.this.getCacheDir(),
-				"images/" + series.seriesid);
-		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_series_display);
+				"images/" + series.seriesid + "/" + series.seriesid);
 		
+		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_series_display);
+		layout.removeAllViews();
+
 		final ImageView image = new ImageView(SeriesDisplay.this);
 		image.setAdjustViewBounds(true);
 		layout.addView(image);
@@ -90,7 +89,7 @@ public class SeriesDisplay extends Activity {
 		summary.setText("Summary (courtesy of tvrage.com):\n" + series.summary);
 		summary.setSingleLine(false);
 		layout.addView(summary);
-		
+
 		new Thread(new Runnable() {
 			public void run() {
 				try {

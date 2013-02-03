@@ -34,18 +34,6 @@ public class EpisodeDisplay extends Activity {
 		}
 	}
 
-	protected void onDestroy() {
-		super.onDestroy();
-		if (new File(this.getCacheDir(), "images").listFiles() != null)
-			for (File f : new File(this.getCacheDir(), "images").listFiles()) {
-				if (f.isDirectory() && f.listFiles() != null)
-					for (File f2 : f.listFiles())
-						f2.delete();
-				f.delete();
-			}
-		new File(this.getCacheDir(), "images").delete();
-	}
-
 	protected void onStart() {
 		super.onStart();
 		final Series series = new Series(this.getIntent().getExtras()
@@ -63,7 +51,8 @@ public class EpisodeDisplay extends Activity {
 				+ episode.getEpisode());
 
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_episode_display);
-		
+		layout.removeAllViews();
+
 		final ImageView image = new ImageView(this);
 		image.setAdjustViewBounds(true);
 		layout.addView(image);
@@ -101,10 +90,9 @@ public class EpisodeDisplay extends Activity {
 			public void run() {
 				try {
 					if (episode.getScreencap() != null) {
-						if (!imageFile.exists()) {
+						if (!imageFile.exists())
 							FileUtils.copyURLToFile(
 									new URL(episode.getScreencap()), imageFile);
-						}
 						EpisodeDisplay.this.runOnUiThread(new Runnable() {
 							public void run() {
 								image.setImageURI(Uri.fromFile(imageFile));
@@ -112,9 +100,11 @@ public class EpisodeDisplay extends Activity {
 						});
 					} else {
 						final File imageFile = new File(EpisodeDisplay.this
-								.getCacheDir(), "images/" + series.seriesid);
-						FileUtils.copyURLToFile(new URL(series.imageUrl),
-								imageFile);
+								.getCacheDir(), "images/" + series.seriesid
+								+ "/" + series.seriesid);
+						if (!imageFile.exists())
+							FileUtils.copyURLToFile(new URL(series.imageUrl),
+									imageFile);
 						EpisodeDisplay.this.runOnUiThread(new Runnable() {
 							public void run() {
 								image.setImageURI(Uri.fromFile(imageFile));

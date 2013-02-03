@@ -1,5 +1,6 @@
 package com.yoharnu.newontv;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
@@ -53,22 +54,25 @@ public class NewOnTV extends Activity {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		App.today = new GregorianCalendar();
+	}
+
+	protected void onDestroy() {
+		super.onDestroy();
+		if (new File(this.getCacheDir(), "images").listFiles() != null)
+			for (File f : new File(this.getCacheDir(), "images").listFiles()) {
+				if (f.isDirectory() && f.listFiles() != null)
+					for (File f2 : f.listFiles())
+						f2.delete();
+				f.delete();
+			}
+		new File(this.getCacheDir(), "images").delete();
 	}
 
 	protected void onResume() {
 		super.onResume();
 
-		if (App.hasChanged()) {
-			refresh();
-		}
-	}
-
-	protected void onPause() {
-		super.onPause();
-
-		if (pd != null && pd.isShowing()) {
-			pd.dismiss();
-		}
+		refresh();
 	}
 
 	private void refresh() {
