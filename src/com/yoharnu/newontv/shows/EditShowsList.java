@@ -116,11 +116,5 @@ public class EditShowsList extends Activity {
 		}
 	}
 
-	public void onRefreshClick(View view) {
-		this.update();
-	}
 
-	public void onDeleteShowClick(View view) {
-		startActivity(new Intent(App.getContext(), DeleteShow.class));
-	}
 }

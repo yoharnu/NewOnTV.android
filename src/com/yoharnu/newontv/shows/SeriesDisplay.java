@@ -15,8 +15,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -55,9 +58,26 @@ public class SeriesDisplay extends Activity {
 				}
 			}
 
+		this.setTitle(series.getSeriesName());
+		boolean contains = false;
+		for (Series temp : App.shows) {
+			if (temp.getSeriesId().equals(series.getSeriesId())) {
+				contains = true;
+				break;
+			}
+		}
+		Button addDelete = (Button) findViewById(R.id.series_display_addDelete);
+		if (contains) {
+			addDelete.setText("Delete");
+			addDelete.setOnClickListener(new View.OnClickListener(){
+				public void onClick(View v) {
+					delete(v);
+				}});
+		}
+
 		final File imageFile = new File(SeriesDisplay.this.getCacheDir(),
 				"images/" + series.seriesid + "/" + series.seriesid);
-		
+
 		final LinearLayout layout = (LinearLayout) findViewById(R.id.layout_series_display);
 		layout.removeAllViews();
 
@@ -109,6 +129,41 @@ public class SeriesDisplay extends Activity {
 				}
 			}
 		}).start();
+	}
+
+	public void cancel(View view) {
+		this.finish();
+	}
+
+	public void add(View view) {
+		final ProgressDialog pd = new ProgressDialog(this);
+		pd.setTitle("Loading");
+		pd.setMessage("Downloading. Please wait.");
+		pd.setIndeterminate(true);
+		pd.setCancelable(false);
+		pd.show();
+		new Thread(new Runnable() {
+			public void run() {
+				App.add(series.getSeriesId());
+				App.preferences.edit().remove("db-shows-rev").commit();
+				App.save();
+				App.setChanged(true);
+				pd.dismiss();
+				SeriesDisplay.this.finish();
+			}
+		}).start();
+	}
+
+	public void delete(View view) {
+		new File(this.getCacheDir(), "/series/" + series.getSeriesId())
+				.delete();
+		new File(this.getCacheDir(), "/episodes/" + series.getSeriesId())
+				.delete();
+		App.shows.remove(series);
+		App.preferences.edit().remove("db-shows-rev").commit();
+		App.save();
+		App.setChanged(true);
+		this.finish();
 	}
 
 	@Override

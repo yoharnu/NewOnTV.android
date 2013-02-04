@@ -38,6 +38,7 @@ public class EpisodeDisplay extends Activity {
 		super.onStart();
 		final Series series = new Series(this.getIntent().getExtras()
 				.getString("series"), Series.ID);
+		this.setTitle(series.getSeriesName());
 		String s = this.getIntent().getExtras().getString("season");
 		String e = this.getIntent().getExtras().getString("episode");
 		for (Episode episode : series.episodes) {

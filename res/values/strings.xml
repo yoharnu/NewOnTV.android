@@ -5,7 +5,7 @@
     <string name="menu_settings">Settings</string>
     <string name="pref_default">default</string>
     <string name="forceRefresh">Force Refresh</string>
-    <string name="title_activity_edit_shows_list">Add/Remove Shows</string>
+    <string name="title_activity_edit_shows_list">My Shows</string>
     <string name="addShowByName">Add Show by Title</string>
     <string name="viewShowsList">My Shows</string>
     <string name="enter_show_title">Enter show title</string>
@@ -16,8 +16,7 @@
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="deleteShow">Delete Show</string>
-    <string name="title_activity_delete_show">Delete Show</string>
-    <string name="editList">Edit List</string>
+    <string name="editList">My Shows</string>
     <string name="title_activity_settings">Settings</string>
     <string name="settings_export">Export List&#8230;</string>
     <string name="settings_import">Import List&#8230;</string>
@@ -31,7 +30,6 @@
     <string name="settings_clear_list">Delete All Shows&#8230;</string>
     <string name="defaultDate">01-01-2000</string>
     <string name="today">Today</string>
-    <string name="hello_world">Hello world!</string>
     <string name="title_activity_series_display">SeriesDisplay</string>
     <string name="title_activity_episode_display">EpisodeDisplay</string>
 

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.yoharnu.newontv.android"
-    android:versionCode="6"
-    android:versionName="0.1.1a" >
+    android:versionCode="8"
+    android:versionName="0.1.3" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <uses-sdk
@@ -37,13 +36,6 @@
         <activity
             android:name="com.yoharnu.newontv.shows.ChooseSeries"
             android:label="@string/title_activity_choose_series" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.yoharnu.newontv.shows.EditShowsList" />
-        </activity>
-        <activity
-            android:name="com.yoharnu.newontv.shows.DeleteShow"
-            android:label="@string/title_activity_delete_show" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.yoharnu.newontv.shows.EditShowsList" />

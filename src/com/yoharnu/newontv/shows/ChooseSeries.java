@@ -21,9 +21,7 @@ import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 
@@ -39,19 +37,10 @@ public class ChooseSeries extends Activity {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
-	}
+		// }
 
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		for (File f : new File(this.getCacheDir(), "search").listFiles()) {
-			f.delete();
-		}
-		new File(this.getCacheDir(), "search").delete();
-	}
-
-	protected void onStart() {
-		super.onStart();
+		// protected void onStart() {
+		// super.onStart();
 		final ProgressDialog pd = new ProgressDialog(this);
 		pd.setMessage("Loading...");
 		pd.setIndeterminate(true);
@@ -93,54 +82,39 @@ public class ChooseSeries extends Activity {
 					}
 				}
 
-				LinkedList<String> optionsNames = new LinkedList<String>();
-				for (int i = 0; i < Series.options.size(); i++) {
-					optionsNames.add(Series.options.get(i).getSeriesName());
+				final LinearLayout layout = (LinearLayout) ChooseSeries.this
+						.findViewById(R.id.layout_choose_series);
+				for (final Series series : Series.options) {
+					final TextView name = new TextView(ChooseSeries.this);
+					name.setText(series.getSeriesName());
+					name.setTextSize(20);
+					name.setOnClickListener(new View.OnClickListener() {
+						public void onClick(View v) {
+							Intent intent = new Intent(ChooseSeries.this,
+									SeriesDisplay.class);
+							intent.putExtra("series", series.seriesid);
+							startActivity(intent);
+						}
+					});
+					ChooseSeries.this.runOnUiThread(new Runnable() {
+						public void run() {
+							layout.addView(name);
+						}
+					});
 				}
-				final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-						App.getContext(),
-						android.R.layout.simple_dropdown_item_1line,
-						optionsNames);
-				runOnUiThread(new Runnable() {
-					public void run() {
-						Spinner spinner = (Spinner) findViewById(R.id.spins);
-						spinner.setAdapter(adapter);
-						spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-							@Override
-							public void onItemSelected(AdapterView<?> parent,
-									View view, int pos, long id) {
-								String name = (String) parent
-										.getItemAtPosition(pos);
-								Series series = null;
-								for (int i = 0; i < Series.options.size(); i++) {
-									if (name.equals(Series.options.get(i)
-											.getSeriesName())) {
-										series = Series.options.get(i);
-										s = Series.options.get(i);
-										break;
-									}
-								}
-								TextView overview = (TextView) findViewById(R.id.spins_overview);
-								overview.setText("First Aired: "
-										+ series.getFirstAired()
-										+ "\nSummary courtesy of tvrage.com: "
-										+ series.getSummary());
-								overview.setSingleLine(false);
-
-								//overview.setVisibility(View.VISIBLE);
-							}
-
-							@Override
-							public void onNothingSelected(AdapterView<?> arg0) {
-							}
-						});
-					}
-				});
 				pd.dismiss();
 			}
 		}).start();
 
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		for (File f : new File(this.getCacheDir(), "search").listFiles()) {
+			f.delete();
+		}
+		new File(this.getCacheDir(), "search").delete();
 	}
 
 	@Override
@@ -172,42 +146,6 @@ public class ChooseSeries extends Activity {
 		default:
 			return super.onOptionsItemSelected(item);
 		}
-	}
-
-	public void add(View view) {
-		final ProgressDialog pd = new ProgressDialog(this);
-		pd.setTitle("Loading");
-		pd.setMessage("Downloading. Please wait.");
-		pd.setIndeterminate(true);
-		pd.setCancelable(false);
-		pd.show();
-		new Thread(new Runnable() {
-			public void run() {
-				Spinner spinner = (Spinner) findViewById(R.id.spins);
-				TextView t = (TextView) spinner.getSelectedView();
-				String text = t.getText().toString();
-				for (int i = 0; i < Series.options.size(); i++) {
-					if (text.equals(Series.options.get(i).getSeriesName())) {
-						App.add(Series.options.get(i).getSeriesId());
-					}
-				}
-				App.preferences.edit().remove("db-shows-rev").commit();
-				App.save();
-				App.setChanged(true);
-				pd.dismiss();
-				ChooseSeries.this.finish();
-			}
-		}).start();
-	}
-
-	public void cancel(View view) {
-		this.finish();
-	}
-	
-	public void details(View view){
-		Intent intent = new Intent(this, SeriesDisplay.class);
-		intent.putExtra("series", s.seriesid);
-		startActivity(intent);
 	}
 
 }

@@ -41,7 +41,6 @@
     <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_above="@+id/refresh_button"
         android:layout_below="@+id/layout_show_search" >
 
         <LinearLayout
@@ -51,22 +50,5 @@
             android:orientation="vertical" >
         </LinearLayout>
     </ScrollView>
-
-    <Button
-        android:id="@+id/refresh_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:onClick="onRefreshClick"
-        android:text="@string/refresh" />
-    <Button
-        android:id="@+id/delete_show_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:onClick="onDeleteShowClick"
-        android:text="@string/deleteShow" />
 
 </RelativeLayout>
