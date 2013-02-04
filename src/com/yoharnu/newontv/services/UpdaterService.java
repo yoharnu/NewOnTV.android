@@ -48,7 +48,7 @@ public class UpdaterService extends Service {
 			try {
 				lastUpdated = App.preferences.getLong("last-updated", 0);
 			} catch (ClassCastException e) {
-				App.preferences.edit().remove("last-updated").apply();
+				App.preferences.edit().remove("last-updated").commit();
 			}
 			File tempFile = new File(UpdaterService.this.getCacheDir(),
 					"update");
@@ -71,7 +71,7 @@ public class UpdaterService extends Service {
 						.edit()
 						.putLong("last-updated",
 								new GregorianCalendar().getTimeInMillis())
-						.apply();
+						.commit();
 			} else {
 				LinkedList<String> updated = new LinkedList<String>();
 				try {
@@ -88,7 +88,7 @@ public class UpdaterService extends Service {
 								.putLong(
 										"last-updated",
 										new GregorianCalendar()
-												.getTimeInMillis()).apply();
+												.getTimeInMillis()).commit();
 
 						System.out.println("Checking for updates 1/1");
 
@@ -187,7 +187,6 @@ public class UpdaterService extends Service {
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

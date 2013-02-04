@@ -5,7 +5,7 @@
 
     <PreferenceCategory android:title="@string/pref_category_general" >
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="only_show_running"
             android:persistent="true"
             android:summaryOff="@string/settings_runningShowsOnly_summaryOff"
