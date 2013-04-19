@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.GregorianCalendar;
@@ -22,6 +23,8 @@ import com.dropbox.client2.exception.DropboxUnlinkedException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.Session.AccessType;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.yoharnu.newontv.events.LoadingEvent;
 import com.yoharnu.newontv.shows.Series;
 
@@ -48,6 +51,7 @@ public class App extends Application {
 	final static private AccessType ACCESS_TYPE = AccessType.APP_FOLDER;
 	static DropboxAPI<AndroidAuthSession> mDBApi;
 	static private boolean changed = false;
+	static private boolean loading = false;
 
 	public void onCreate() {
 		super.onCreate();
@@ -61,7 +65,7 @@ public class App extends Application {
 				ACCESS_TYPE);
 		mDBApi = new DropboxAPI<AndroidAuthSession>(session);
 		AccessTokenPair access = getStoredKeys();
-		if (access != null)
+		if ( access != null )
 			mDBApi.getSession().setAccessTokenPair(access);
 		checkPermissions();
 	}
@@ -69,7 +73,7 @@ public class App extends Application {
 	private AccessTokenPair getStoredKeys() {
 		String key = preferences.getString("db-key", null);
 		String secret = preferences.getString("db-secret", null);
-		if (key == null || secret == null)
+		if ( key == null || secret == null )
 			return null;
 		return new AccessTokenPair(key, secret);
 	}
@@ -79,28 +83,26 @@ public class App extends Application {
 	}
 
 	public static void add(String seriesId) {
-		Series temp = new Series(seriesId, Series.ID);
-		boolean present = false;
-		for (int i = 0; i < shows.size(); i++) {
-			if (shows.get(i).getSeriesId().equals(seriesId)) {
-				present = true;
-			}
-		}
-		if (!present) {
-			shows.add(temp);
-		}
+		// Series temp = new Series(seriesId, Series.ID);
+		add(new Series(seriesId, Series.ID));
+		/*
+		 * boolean present = false; for ( int i = 0; i < shows.size(); i++ ) { if ( shows.get(i).getSeriesId().equals(seriesId) ) { present = true; } } if ( !present ) { shows.add(temp); save();
+		 * temp.deleteCache(); }
+		 */
 	}
 
 	public static void add(Series series) {
 		boolean present = false;
-		for (int i = 0; i < shows.size(); i++) {
-			if (shows.get(i).getSeriesId().equals(series.getSeriesId())) {
+		for ( int i = 0; i < shows.size(); i++ ) {
+			if ( shows.get(i).getSeriesId().equals(series.getSeriesId()) ) {
 				present = true;
 				break;
 			}
 		}
-		if (!present) {
+		if ( !present ) {
 			shows.add(series);
+			save();
+			series.deleteCache();
 		}
 	}
 
@@ -110,20 +112,29 @@ public class App extends Application {
 
 	private static void saveToFile() {
 		try {
+			Gson gson = new Gson();
 			File temp = new File(context.getFilesDir(), "shows-temp");
 			PrintStream out = new PrintStream(new File(context.getFilesDir(),
 					"shows-temp"));
-			for (int i = 0; i < shows.size(); i++) {
-				out.println(shows.get(i).getSeriesId());
-			}
-			File save = new File(context.getFilesDir(), "shows");
+			gson.toJson(shows,
+					new TypeToken<LinkedList<Series>>() {}.getType(), out);
+			/*
+			 * for ( int i = 0; i < shows.size(); i++ ) { gson.toJson(shows.get(i), out); // out.println(shows.get(i).getSeriesId()); }
+			 */
+			File save = new File(context.getFilesDir(), "showInfo");
 			FileUtils.copyFile(temp, save);
 			temp.delete();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+			if ( out != null ) {
+				out.close();
+			}
+		}
+		catch ( FileNotFoundException e ) {
 			e.printStackTrace();
 		}
+		catch ( IOException e ) {
+			e.printStackTrace();
+		}
+
 	}
 
 	static void saveToDropbox(final Activity activity) {
@@ -142,15 +153,15 @@ public class App extends Application {
 			public void run() {
 				FileInputStream inputStream = null;
 				try {
-					File local = new File(context.getFilesDir(), "shows");
-					if (!local.exists())
+					File local = new File(context.getFilesDir(), "showInfo");
+					if ( !local.exists() )
 						return;
 					Entry existingEntry = mDBApi.metadata("/shows", 1, null,
 							false, null);
 					Log.i("Dropbox", "The file's rev is now: "
 							+ existingEntry.rev);
 					inputStream = new FileInputStream(local);
-					if (existingEntry != null && !existingEntry.isDeleted) {
+					if ( existingEntry != null && !existingEntry.isDeleted ) {
 						mDBApi.delete("/shows");
 					}
 					Entry newEntry = mDBApi.putFile("/shows", inputStream,
@@ -160,19 +171,24 @@ public class App extends Application {
 					SharedPreferences.Editor e = preferences.edit();
 					e.putString("db-shows-rev", newEntry.rev);
 					e.commit();
-				} catch (DropboxUnlinkedException e) {
+				}
+				catch ( DropboxUnlinkedException e ) {
 					// User has unlinked, ask them to link again here.
 					Log.e("Dropbox", "User has unlinked.");
-				} catch (DropboxException e) {
+				}
+				catch ( DropboxException e ) {
 					Log.e("Dropbox", "Something went wrong while uploading.");
 					e.printStackTrace();
-				} catch (FileNotFoundException e) {
+				}
+				catch ( FileNotFoundException e ) {
 					Log.e("Dropbox", "File not found.");
-				} finally {
-					if (inputStream != null) {
+				}
+				finally {
+					if ( inputStream != null ) {
 						try {
 							inputStream.close();
-						} catch (IOException e) {
+						}
+						catch ( IOException e ) {
 						}
 					}
 					pd.dismiss();
@@ -182,7 +198,9 @@ public class App extends Application {
 	}
 
 	static void load(final Activity activity) throws InterruptedException {
+		loading = true;
 		loadFromFile(activity);
+		loading = false;
 	}
 
 	static void loadFromDropbox(final Activity activity) {
@@ -202,14 +220,14 @@ public class App extends Application {
 			public void run() {
 				FileOutputStream outputStream = null;
 				try {
-					Entry existingEntry = mDBApi.metadata("/shows", 1, null,
+					Entry existingEntry = mDBApi.metadata("/showInfo", 1, null,
 							false, null);
 					Log.i("Dropbox", "The file's rev is now: "
 							+ existingEntry.rev);
-					if (existingEntry.rev.equals(preferences.getString(
+					if ( existingEntry.rev.equals(preferences.getString(
 							"db-shows-rev", null))
 							|| existingEntry == null
-							|| existingEntry.isDeleted) {
+							|| existingEntry.isDeleted ) {
 						activity.runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
@@ -218,9 +236,9 @@ public class App extends Application {
 						});
 						return;
 					}
-					File local = new File(App.context.getFilesDir(), "shows");
+					File local = new File(context.getFilesDir(), "showInfo");
 					outputStream = new FileOutputStream(local);
-					DropboxFileInfo info = mDBApi.getFile("/shows", null,
+					DropboxFileInfo info = mDBApi.getFile("/showInfo", null,
 							outputStream, new ProgressListener() {
 								@Override
 								public void onProgress(final long bytes,
@@ -229,7 +247,7 @@ public class App extends Application {
 										public void run() {
 											pd.setMax((int) total);
 											pd.setProgress((int) bytes);
-											if (bytes == total) {
+											if ( bytes == total ) {
 												pd.dismiss();
 											}
 										}
@@ -241,23 +259,62 @@ public class App extends Application {
 					SharedPreferences.Editor e = preferences.edit();
 					e.putString("db-shows-rev", info.getMetadata().rev);
 					e.commit();
-				} catch (DropboxException e) {
+				}
+				catch ( DropboxException e ) {
+					File local = new File(context.getFilesDir(), "showInfo");
+					try {
+						outputStream = new FileOutputStream(local);
+					}
+					catch ( FileNotFoundException e3 ) {
+						e3.printStackTrace();
+					}
 					Log.e("Dropbox", "Something went wrong while downloading.");
-				} catch (FileNotFoundException e) {
+					try {
+						DropboxFileInfo info = mDBApi.getFile("/shows", null,
+								outputStream, new ProgressListener() {
+									@Override
+									public void onProgress(final long bytes,
+											final long total) {
+										activity.runOnUiThread(new Runnable() {
+											public void run() {
+												pd.setMax((int) total);
+												pd.setProgress((int) bytes);
+												if ( bytes == total ) {
+													pd.dismiss();
+												}
+											}
+										});
+									}
+								});
+
+						Log.i("Dropbox",
+								"The file's rev is: " + info.getMetadata().rev);
+						SharedPreferences.Editor e1 = preferences.edit();
+						e1.putString("db-shows-rev", info.getMetadata().rev);
+						e1.commit();
+					}
+					catch ( DropboxException e2 ) {
+						e2.printStackTrace();
+					}
+				}
+				catch ( FileNotFoundException e ) {
 					Log.e("Dropbox", "File not found.");
-				} finally {
-					if (outputStream != null) {
+				}
+				finally {
+					if ( outputStream != null ) {
 						try {
 							outputStream.close();
-						} catch (IOException e) {
+						}
+						catch ( IOException e ) {
 						}
 					}
-					if (pd.isShowing())
+					if ( pd.isShowing() )
 						pd.dismiss();
 				}
 				try {
 					loadFromFile(activity);
-				} catch (InterruptedException e) {
+				}
+				catch ( InterruptedException e ) {
 					e.printStackTrace();
 				}
 			}
@@ -273,64 +330,97 @@ public class App extends Application {
 				pd.setTitle("Loading...");
 				pd.setMessage("Setting up shows");
 				pd.setIndeterminate(false);
-				pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 				pd.setCancelable(false);
+				pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 				pd.show();
 				new Thread(new Runnable() {
 					public void run() {
 						try {
 							File shows = new File(context.getFilesDir(),
-									"shows");
-							Scanner s = new Scanner(shows);
+									"showInfo");
+
 							App.shows.clear();
 
-							LinkedList<String> temp = new LinkedList<String>();
-							while (s.hasNextLine()) {
-								temp.add(s.nextLine());
-							}
-							s.close();
+							if ( new File(context.getFilesDir(), "shows")
+									.exists() ) {
+								Scanner s = new Scanner(new File(context
+										.getFilesDir(), "shows"));
+								LinkedList<String> temp = new LinkedList<String>();
+								while ( s.hasNextLine() ) {
+									temp.add(s.nextLine());
+								}
+								if ( s != null ) {
+									s.close();
+								}
 
-							{
-								final int workaround = temp.size();
+								{
+									final int workaround = temp.size();
+									activity.runOnUiThread(new Runnable() {
+										public void run() {
+											pd.setMax(workaround);
+											pd.setProgress(0);
+										}
+									});
+								}
+								for ( int i = 0; i < temp.size(); i++ ) {
+									add(temp.get(i));
+									final int workaround = i + 1;
+									activity.runOnUiThread(new Runnable() {
+										public void run() {
+											pd.setProgress(workaround);
+										}
+									});
+								}
+								new File(context.getFilesDir(), "shows")
+										.delete();
+							}
+							else if ( shows.exists() ) {
+								App.shows = new Gson().fromJson(new FileReader(
+										shows),
+										new TypeToken<LinkedList<Series>>() {}
+												.getType());
 								activity.runOnUiThread(new Runnable() {
 									public void run() {
-										pd.setMax(workaround);
-										pd.setProgress(0);
+										pd.setProgress(99);
 									}
 								});
 							}
-							for (int i = 0; i < temp.size(); i++) {
-								add(temp.get(i));
-								final int workaround = i + 1;
-								activity.runOnUiThread(new Runnable() {
-									public void run() {
-										pd.setProgress(workaround);
-									}
-								});
-							}
-						} catch (FileNotFoundException e) {
+						}
+
+						catch ( FileNotFoundException e ) {
 							e.printStackTrace();
 						}
 						activity.runOnUiThread(new Runnable() {
 							public void run() {
-								if (pd.isShowing())
+								if ( pd.isShowing() )
 									pd.dismiss();
 							}
 						});
 						LoadingEvent.done();
 					}
+
 				}).start();
 			}
 		});
 	}
 
 	public static void sortByName() {
-		for (int i = 0; i < App.shows.size(); i++) {
+		for ( int i = 0; i < App.shows.size(); i++ ) {
 			Series temp = App.shows.get(i);
+			if ( temp.getSeriesName() == null ) {
+				try {
+					temp.redownload();
+					temp.parse();
+					temp.fetchEpisodeInfo();
+				}
+				catch ( IOException e ) {
+					e.printStackTrace();
+				}
+			}
 			int iHole = i;
-			while (iHole > 0
+			while ( iHole > 0
 					&& App.shows.get(iHole - 1).getSeriesName()
-							.compareTo(temp.getSeriesName()) > 0) {
+							.compareTo(temp.getSeriesName()) > 0 ) {
 				App.shows.set(iHole, App.shows.get(iHole - 1));
 				iHole--;
 			}
@@ -341,15 +431,17 @@ public class App extends Application {
 	protected void checkPermissions() {
 		String state = Environment.getExternalStorageState();
 
-		if (Environment.MEDIA_MOUNTED.equals(state)) {
+		if ( Environment.MEDIA_MOUNTED.equals(state) ) {
 			// We can read and write the media
 			mExternalStorageAvailable = true;
 			mExternalStorageWriteable = true;
-		} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+		}
+		else if ( Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {
 			// We can only read the media
 			mExternalStorageAvailable = true;
 			mExternalStorageWriteable = false;
-		} else {
+		}
+		else {
 			// Something else is wrong. It may be one of many other states, but
 			// all we need
 			// to know is we can neither read nor write
@@ -372,6 +464,10 @@ public class App extends Application {
 
 	public static void setChanged(boolean changed) {
 		App.changed = changed;
+	}
+
+	public static boolean isLoading() {
+		return loading;
 	}
 
 }

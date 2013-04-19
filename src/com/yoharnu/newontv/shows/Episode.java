@@ -18,11 +18,15 @@ public class Episode {
 	private String screencap;
 	private String airTime;
 	private GregorianCalendar airDate;
-	private Series parent;
+	private String seriesName;
+	private String network;
+	private String seriesId;
 
 	public Episode(final String line, final String season, final Series parent) {
 		this.season = season;
-		this.parent = parent;
+		seriesName = parent.getSeriesName();
+		network = parent.getNetwork();
+		seriesId = parent.getSeriesId();
 		airTime = parent.airTime;
 		episode = "e" + line.split("<seasonnum>")[1].split("</seasonnum>")[0];
 		epName = line.split("<title>")[1].split("</title>")[0]
@@ -30,34 +34,35 @@ public class Episode {
 				.replaceAll("&amp;", "&");
 		String[] splits = line.split("<summary>");
 		summary = "Not Available";
-		if (splits.length > 1) {
+		if ( splits.length > 1 ) {
 			splits = splits[1].split("</summary>");
-			if (splits.length > 0)
+			if ( splits.length > 0 )
 				summary = splits[0].replaceAll("&#39;", "'")
 						.replaceAll("&quot;", "\"").replaceAll("&amp;", "&");
 		}
 		screencap = null;
 		splits = line.split("<screencap>");
-		if (splits.length > 1) {
+		if ( splits.length > 1 ) {
 			splits = splits[1].split("</screencap>");
-			if (splits.length > 0)
+			if ( splits.length > 0 )
 				screencap = splits[0];
 		}
 		splits = line.split("<alternatetime>");
-		if (splits.length > 1) {
+		if ( splits.length > 1 ) {
 			splits = splits[1].split("</alternatetime>");
-			if (splits.length > 0) {
+			if ( splits.length > 0 ) {
 				airTime = splits[0];
-				if (airTime.matches("[0-9]{2}:[0-9]{2} pm")
+				if ( airTime.matches("[0-9]{2}:[0-9]{2} pm")
 						&& Integer
-								.parseInt(airTime.split(" ")[0].split(":")[0]) < 12) {
+								.parseInt(airTime.split(" ")[0].split(":")[0]) < 12 ) {
 					airTime = (Integer.parseInt(airTime.split(" ")[0]
 							.split(":")[0]) + 12)
 							+ ":"
 							+ airTime.split(" ")[0].split(":")[1];
-				} else if (airTime.matches("[0-9]{2}:[0-9]{2} am")
+				}
+				else if ( airTime.matches("[0-9]{2}:[0-9]{2} am")
 						|| Integer
-								.parseInt(airTime.split(" ")[0].split(":")[0]) == 12) {
+								.parseInt(airTime.split(" ")[0].split(":")[0]) == 12 ) {
 					airTime = airTime.split(" ")[0];
 				}
 			}
@@ -73,8 +78,7 @@ public class Episode {
 
 	public TextView print(final Activity activity) {
 		TextView returnVal = new TextView(App.getContext());
-		String text = parent.getSeriesName() + "          "
-				+ parent.getNetwork();
+		String text = seriesName + "          " + network;
 		returnVal.setText(text);
 		returnVal.setPadding(returnVal.getPaddingLeft() + 50,
 				returnVal.getPaddingTop(), returnVal.getPaddingRight(),
@@ -83,7 +87,7 @@ public class Episode {
 		returnVal.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				Intent intent = new Intent(activity, EpisodeDisplay.class);
-				intent.putExtra("series", parent.getSeriesId());
+				intent.putExtra("series", seriesId);
 				intent.putExtra("season", season);
 				intent.putExtra("episode", episode);
 				activity.startActivity(intent);
@@ -110,16 +114,29 @@ public class Episode {
 	}
 
 	public static LinkedList<Episode> sortByTime(LinkedList<Episode> list) {
-		for (int i = 0; i < list.size(); i++) {
+		for ( int i = 0; i < list.size(); i++ ) {
 			Episode temp = list.get(i);
 			int iHole = i;
-			while (iHole > 0 && list.get(iHole - 1).airDate.after(temp.airDate)) {
+			while ( iHole > 0
+					&& list.get(iHole - 1).airDate.after(temp.airDate) ) {
 				list.set(iHole, list.get(iHole - 1));
 				iHole--;
 			}
 			list.set(iHole, temp);
 		}
-		return list;
+		LinkedList<Episode> returnVal = new LinkedList<Episode>();
+		for(Episode e1: list){
+			boolean contains = false;
+			for(Episode e2:returnVal){
+				if(e1.equals(e2)){
+					contains = true;
+				}
+			}
+			if(!contains){
+				returnVal.add(e1);
+			}
+		}
+		return returnVal;
 	}
 
 	public String getScreencap() {
@@ -128,6 +145,14 @@ public class Episode {
 
 	public String getSummary() {
 		return summary;
+	}
+
+	public String getSeriesId() {
+		return this.seriesId;
+	}
+	
+	public boolean equals(final Episode episode){
+		return (this.seriesId.equals(episode.seriesId) && this.season.equals(episode.season) && this.episode.equals(episode.episode));
 	}
 
 }

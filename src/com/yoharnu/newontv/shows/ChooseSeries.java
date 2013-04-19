@@ -34,7 +34,7 @@ public class ChooseSeries extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_choose_series);
 		// Show the Up button in the action bar.
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 		// }
@@ -53,10 +53,12 @@ public class ChooseSeries extends Activity {
 				try {
 					FileUtils.copyURLToFile(new URL(s.seriesUrl), new File(
 							s.seriesFile));
-				} catch (MalformedURLException e) {
+				}
+				catch ( MalformedURLException e ) {
 					pd.dismiss();
 					e.printStackTrace();
-				} catch (IOException e) {
+				}
+				catch ( IOException e ) {
 					pd.dismiss();
 					e.printStackTrace();
 				}
@@ -64,19 +66,19 @@ public class ChooseSeries extends Activity {
 				File temp = new File(s.seriesFile);
 				Series.parseSearch(temp);
 				temp.delete();
-				if (App.preferences.getBoolean("only_show_running", false)) {
+				if ( App.preferences.getBoolean("only_show_running", true) ) {
 					LinkedList<Series> tempOptions = new LinkedList<Series>();
-					for (int i = 0; i < Series.options.size(); i++) {
+					for ( int i = 0; i < Series.options.size(); i++ ) {
 						tempOptions.add(Series.options.get(i));
 					}
 					Series.options.clear();
-					for (Series s : tempOptions) {
-						if (s.getStatus() == null) {
+					for ( Series s : tempOptions ) {
+						if ( s.getStatus() == null ) {
 							System.out.println(s.getSeriesName());
 						}
-						if (!s.getStatus().equals("Canceled/Ended")
+						else if ( !s.getStatus().equals("Canceled/Ended")
 								&& !s.getStatus().equals("Pilot Rejected")
-								&& !s.getStatus().equals("Never Aired")) {
+								&& !s.getStatus().equals("Never Aired") ) {
 							Series.options.add(s);
 						}
 					}
@@ -84,7 +86,7 @@ public class ChooseSeries extends Activity {
 
 				final LinearLayout layout = (LinearLayout) ChooseSeries.this
 						.findViewById(R.id.layout_choose_series);
-				for (final Series series : Series.options) {
+				for ( final Series series : Series.options ) {
 					final TextView name = new TextView(ChooseSeries.this);
 					name.setText(series.getSeriesName());
 					name.setTextSize(20);
@@ -111,8 +113,10 @@ public class ChooseSeries extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		for (File f : new File(this.getCacheDir(), "search").listFiles()) {
-			f.delete();
+		if ( new File(this.getCacheDir(), "search").listFiles() != null ) {
+			for ( File f : new File(this.getCacheDir(), "search").listFiles() ) {
+				f.delete();
+			}
 		}
 		new File(this.getCacheDir(), "search").delete();
 	}
@@ -126,7 +130,7 @@ public class ChooseSeries extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
+		switch ( item.getItemId() ) {
 		case android.R.id.home:
 			// This ID represents the Home or Up button. In the case of this
 			// activity, the Up button is shown. Use NavUtils to allow users

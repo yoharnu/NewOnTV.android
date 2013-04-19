@@ -37,7 +37,7 @@ public class Settings extends PreferenceActivity {
 		super.onCreate(savedInstanceState);
 		// setContentView(R.layout.activity_settings);
 		// Show the Up button in the action bar.
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 		addPreferencesFromResource(R.xml.preferences);
@@ -46,15 +46,16 @@ public class Settings extends PreferenceActivity {
 		pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 			public boolean onPreferenceClick(Preference preference) {
 				Toast toast = null;
-				if (App.isExternalStorageAvailable()
-						&& App.isExternalStorageWriteable()) {
+				if ( App.isExternalStorageAvailable()
+						&& App.isExternalStorageWriteable() ) {
 					File export = new File(Environment
 							.getExternalStorageDirectory(), "NewOnTV/shows.txt");
 					File current = new File(App.getContext().getFilesDir(),
-							"shows");
+							"showInfo");
 					try {
 						FileUtils.copyFile(current, export);
-					} catch (IOException e) {
+					}
+					catch ( IOException e ) {
 						e.printStackTrace();
 						toast = Toast.makeText(App.getContext(),
 								"Export failed. Please try again.",
@@ -81,10 +82,10 @@ public class Settings extends PreferenceActivity {
 		toImport.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 			public boolean onPreferenceClick(Preference preference) {
 				Toast toast = null;
-				if (App.isExternalStorageAvailable()) {
+				if ( App.isExternalStorageAvailable() ) {
 					final File toImport = new File(Environment
 							.getExternalStorageDirectory(), "NewOnTV/shows.txt");
-					if (!toImport.exists()) {
+					if ( !toImport.exists() ) {
 						toast = Toast.makeText(App.getContext(),
 								toImport.getPath() + " does not exist.",
 								Toast.LENGTH_LONG);
@@ -92,7 +93,7 @@ public class Settings extends PreferenceActivity {
 						return false;
 					}
 					final File current = new File(App.getContext()
-							.getFilesDir(), "shows");
+							.getFilesDir(), "showInfo");
 					final ProgressDialog pd = new ProgressDialog(tempAct);
 					pd.setMessage("Loading...");
 					pd.setIndeterminate(true);
@@ -105,7 +106,8 @@ public class Settings extends PreferenceActivity {
 								pd.dismiss();
 								try {
 									App.loadFromFile(Settings.this);
-								} catch (InterruptedException e) {
+								}
+								catch ( InterruptedException e ) {
 									e.printStackTrace();
 								}
 								runOnUiThread(new Runnable() {
@@ -118,10 +120,12 @@ public class Settings extends PreferenceActivity {
 										toast.show();
 									}
 								});
-							} catch (IOException e) {
+							}
+							catch ( IOException e ) {
 								e.printStackTrace();
-							} finally {
-								if (pd.isShowing())
+							}
+							finally {
+								if ( pd.isShowing() )
 									pd.dismiss();
 							}
 						}
@@ -177,7 +181,7 @@ public class Settings extends PreferenceActivity {
 
 					@Override
 					public boolean onPreferenceClick(Preference preference) {
-						if (App.mDBApi.getSession().isLinked()) {
+						if ( App.mDBApi.getSession().isLinked() ) {
 							App.mDBApi.getSession().unlink();
 							App.preferences.edit().remove("db-key")
 									.remove("db-secret").remove("db-shows-rev")
@@ -190,7 +194,8 @@ public class Settings extends PreferenceActivity {
 									restoreFromDropbox.setEnabled(false);
 								}
 							});
-						} else {
+						}
+						else {
 							App.mDBApi.getSession().startAuthentication(
 									Settings.this);
 						}
@@ -213,12 +218,12 @@ public class Settings extends PreferenceActivity {
 						return true;
 					}
 				});
-			}
+	}
 
 	protected void onResume() {
 		super.onResume();
 
-		if (App.mDBApi.getSession().authenticationSuccessful()) {
+		if ( App.mDBApi.getSession().authenticationSuccessful() ) {
 			try {
 				// MANDATORY call to complete auth.
 				// Sets the access token on the session
@@ -230,7 +235,8 @@ public class Settings extends PreferenceActivity {
 				// Provide your own storeKeys to persist the access token pair
 				// A typical way to store tokens is using SharedPreferences
 				storeKeys(tokens.key, tokens.secret);
-			} catch (IllegalStateException e) {
+			}
+			catch ( IllegalStateException e ) {
 				Log.i("DbAuthLog", "Error authenticating", e);
 			}
 		}
@@ -241,11 +247,12 @@ public class Settings extends PreferenceActivity {
 		Preference backupToDropbox = findPreference("backup_to_Dropbox");
 		@SuppressWarnings("deprecation")
 		Preference restoreFromDropbox = findPreference("restore_from_Dropbox");
-		if (App.mDBApi.getSession().isLinked()) {
+		if ( App.mDBApi.getSession().isLinked() ) {
 			activateDropbox.setTitle("Unlink Dropbox");
 			backupToDropbox.setEnabled(true);
 			restoreFromDropbox.setEnabled(true);
-		} else {
+		}
+		else {
 			activateDropbox.setTitle("Link with Dropbox");
 			backupToDropbox.setEnabled(false);
 			restoreFromDropbox.setEnabled(false);
@@ -268,7 +275,7 @@ public class Settings extends PreferenceActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
+		switch ( item.getItemId() ) {
 		case android.R.id.home:
 			// This ID represents the Home or Up button. In the case of this
 			// activity, the Up button is shown. Use NavUtils to allow users

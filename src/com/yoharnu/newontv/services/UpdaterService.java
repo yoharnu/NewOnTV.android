@@ -28,7 +28,7 @@ public class UpdaterService extends Service {
 	private Looper mServiceLooper;
 	private ServiceHandler mServiceHandler;
 
-	// Handler that receives messages from the threa
+	// Handler that receives messages from the thread
 	@SuppressLint("HandlerLeak")
 	private final class ServiceHandler extends Handler {
 		public ServiceHandler(Looper looper) {
@@ -38,7 +38,7 @@ public class UpdaterService extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			LinkedList<String> temp = new LinkedList<String>();
-			for (Series series : App.shows) {
+			for ( Series series : App.shows ) {
 				temp.add(series.getSeriesId());
 			}
 
@@ -47,21 +47,23 @@ public class UpdaterService extends Service {
 			long lastUpdated = 0;
 			try {
 				lastUpdated = App.preferences.getLong("last-updated", 0);
-			} catch (ClassCastException e) {
+			}
+			catch ( ClassCastException e ) {
 				App.preferences.edit().remove("last-updated").commit();
 			}
 			File tempFile = new File(UpdaterService.this.getCacheDir(),
 					"update");
-			if (lastUpdated == 0) {
+			if ( lastUpdated == 0 ) {
 				System.out.println("Checking for updates 1/1");
 				System.out.println("Updating changed shows 0/" + temp.size());
-				for (int i = 0; i < App.shows.size(); i++) {
+				for ( int i = 0; i < App.shows.size(); i++ ) {
 					Series series = App.shows.get(i);
 					try {
 						series.redownload();
 						System.out.println("Updating changed shows " + (i + 1)
 								+ "/" + temp.size());
-					} catch (IOException e) {
+					}
+					catch ( IOException e ) {
 						System.err.println("Failed to download: "
 								+ series.getSeriesName() + " : "
 								+ series.getSeriesId());
@@ -72,12 +74,13 @@ public class UpdaterService extends Service {
 						.putLong("last-updated",
 								new GregorianCalendar().getTimeInMillis())
 						.commit();
-			} else {
+			}
+			else {
 				LinkedList<String> updated = new LinkedList<String>();
 				try {
 					lastUpdated = new GregorianCalendar().getTimeInMillis()
 							- lastUpdated;
-					if (lastUpdated / 3600000.0 >= 1) {
+					if ( lastUpdated / 3600000.0 >= 1 ) {
 						lastUpdated = (long) Math
 								.ceil(lastUpdated / 3600000.0 + 12);
 						FileUtils.copyURLToFile(new URL(
@@ -93,12 +96,12 @@ public class UpdaterService extends Service {
 						System.out.println("Checking for updates 1/1");
 
 						Scanner s1 = new Scanner(tempFile);
-						while (s1.hasNextLine()) {
+						while ( s1.hasNextLine() ) {
 							String line = s1.nextLine();
-							if (XMLParser.getTag(line).equals("show")) {
-								for (String id : temp) {
-									if (id.equals(line.split("<id>")[1]
-											.split("</id>")[0])) {
+							if ( XMLParser.getTag(line).equals("show") ) {
+								for ( String id : temp ) {
+									if ( id.equals(line.split("<id>")[1]
+											.split("</id>")[0]) ) {
 										updated.add(id);
 									}
 								}
@@ -106,12 +109,12 @@ public class UpdaterService extends Service {
 						}
 						s1.close();
 					}
-					for (String id : temp) {
-						if (!new File(UpdaterService.this.getCacheDir()
+					for ( String id : temp ) {
+						if ( !new File(UpdaterService.this.getCacheDir()
 								.getAbsolutePath(), "series/" + id).exists()
 								|| !new File(UpdaterService.this.getCacheDir()
 										.getAbsolutePath(), "episodes/" + id)
-										.exists()) {
+										.exists() ) {
 							updated.add(id);
 						}
 					}
@@ -121,9 +124,9 @@ public class UpdaterService extends Service {
 							+ updated.size());
 
 					LinkedList<Series> updatedSeries = new LinkedList<Series>();
-					for (Series series : App.shows) {
-						for (String id : updated) {
-							if (series.getSeriesId().equals(id)) {
+					for ( Series series : App.shows ) {
+						for ( String id : updated ) {
+							if ( series.getSeriesId().equals(id) ) {
 								updatedSeries.add(series);
 								break;
 							}
@@ -131,21 +134,27 @@ public class UpdaterService extends Service {
 					}
 					updated.clear();
 
-					for (int i = 0; i < updatedSeries.size(); i++) {
+					for ( int i = 0; i < updatedSeries.size(); i++ ) {
 						Series series = updatedSeries.get(i);
 						try {
 							series.redownload();
+							series.parse();
+							series.fetchEpisodeInfo();
+							series.deleteCache();
 							System.out.println("Updating changed shows "
 									+ (i + 1) + "/" + updatedSeries.size());
-						} catch (IOException e) {
+						}
+						catch ( IOException e ) {
 							System.err.println("Failed to download: "
 									+ series.getSeriesName() + " : "
 									+ series.getSeriesId());
 						}
 					}
-				} catch (MalformedURLException e) {
+				}
+				catch ( MalformedURLException e ) {
 					e.printStackTrace();
-				} catch (IOException e) {
+				}
+				catch ( IOException e ) {
 					System.err.println("Failed to download update file");
 				}
 			}

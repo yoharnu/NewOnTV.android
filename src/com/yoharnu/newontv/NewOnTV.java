@@ -51,7 +51,8 @@ public class NewOnTV extends Activity {
 		});
 		try {
 			App.load(NewOnTV.this);
-		} catch (InterruptedException e) {
+		}
+		catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
 		App.today = new GregorianCalendar();
@@ -59,10 +60,10 @@ public class NewOnTV extends Activity {
 
 	protected void onDestroy() {
 		super.onDestroy();
-		if (new File(this.getCacheDir(), "images").listFiles() != null)
-			for (File f : new File(this.getCacheDir(), "images").listFiles()) {
-				if (f.isDirectory() && f.listFiles() != null)
-					for (File f2 : f.listFiles())
+		if ( new File(this.getCacheDir(), "images").listFiles() != null )
+			for ( File f : new File(this.getCacheDir(), "images").listFiles() ) {
+				if ( f.isDirectory() && f.listFiles() != null )
+					for ( File f2 : f.listFiles() )
 						f2.delete();
 				f.delete();
 			}
@@ -71,22 +72,24 @@ public class NewOnTV extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-
-		refresh();
+		if ( !App.isLoading() ) {
+			refresh();
+		}
 	}
 
 	private void refresh() {
 		{
 			GregorianCalendar temp = new GregorianCalendar();
-			if (temp.get(GregorianCalendar.MONTH) == App.today
+			if ( temp.get(GregorianCalendar.MONTH) == App.today
 					.get(GregorianCalendar.MONTH)
 					&& temp.get(GregorianCalendar.DATE) == App.today
 							.get(GregorianCalendar.DATE)
 					&& temp.get(GregorianCalendar.YEAR) == App.today
-							.get(GregorianCalendar.YEAR)) {
+							.get(GregorianCalendar.YEAR) ) {
 				Button today = (Button) findViewById(R.id.today);
 				today.setEnabled(false);
-			} else {
+			}
+			else {
 				Button today = (Button) findViewById(R.id.today);
 				today.setEnabled(true);
 			}
@@ -95,12 +98,12 @@ public class NewOnTV extends Activity {
 		final Button date = (Button) findViewById(R.id.changeDate);
 		String today = "";
 
-		if (App.today.get(GregorianCalendar.MONTH) < 9)
+		if ( App.today.get(GregorianCalendar.MONTH) < 9 )
 			today += "0";
 		today += Integer.toString(App.today.get(GregorianCalendar.MONTH) + 1)
 				+ "-";
 
-		if (App.today.get(GregorianCalendar.DATE) < 10)
+		if ( App.today.get(GregorianCalendar.DATE) < 10 )
 			today += "0";
 		today += Integer.toString(App.today.get(GregorianCalendar.DATE)) + "-";
 
@@ -113,25 +116,26 @@ public class NewOnTV extends Activity {
 
 		LinkedList<Episode> tonight = new LinkedList<Episode>();
 
-		for (Series s : App.shows) {
-			for (Episode e : s.getTodaysEpisodes()) {
+		for ( Series s : App.shows ) {
+			for ( Episode e : s.getTodaysEpisodes() ) {
 				tonight.add(e);
 			}
 		}
 
 		tonight = Episode.sortByTime(tonight);
 		String currTime = "";
-		for (Episode e : tonight) {
+		for ( Episode e : tonight ) {
+			System.out.println(e.getSeriesId());
 			String newTime = e.getAirDate().get(Calendar.HOUR) + ":";
-			if (e.getAirDate().get(Calendar.MINUTE) < 10) {
+			if ( e.getAirDate().get(Calendar.MINUTE) < 10 ) {
 				newTime += "0";
 			}
 			newTime += e.getAirDate().get(Calendar.MINUTE);
-			if (e.getAirDate().get(Calendar.AM_PM) == Calendar.AM)
+			if ( e.getAirDate().get(Calendar.AM_PM) == Calendar.AM )
 				newTime += " AM";
 			else
 				newTime += " PM";
-			if (!newTime.equals(currTime)) {
+			if ( !newTime.equals(currTime) ) {
 				TextView time = new TextView(App.getContext());
 				time.setText(newTime);
 				time.setTextSize(20);
@@ -141,7 +145,7 @@ public class NewOnTV extends Activity {
 			ll.addView(e.print(this));
 		}
 
-		if (tonight.isEmpty()) {
+		if ( tonight.isEmpty() ) {
 			TextView nothing = new TextView(App.getContext());
 			nothing.setText("There is nothing new on tonight.");
 			nothing.setTextSize(20);
@@ -164,7 +168,7 @@ public class NewOnTV extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
+		switch ( item.getItemId() ) {
 		case android.R.id.home:
 			// This ID represents the Home or Up button. In the case of this
 			// activity, the Up button is shown. Use NavUtils to allow users

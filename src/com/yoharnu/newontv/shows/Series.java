@@ -7,7 +7,6 @@ import java.net.URL;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
 
@@ -34,15 +33,16 @@ public class Series {
 	protected String episodeFile;
 	protected String imageUrl;
 	protected String classification;
-	protected TimeZone timeZone;
 
 	public Series(final String text, int mode) {
 		episodes = new LinkedList<Episode>();
-		if (mode == NAME) {
+		if ( mode == NAME ) {
 			setupSeriesByName(text);
-		} else if (mode == ID) {
+		}
+		else if ( mode == ID ) {
 			setupSeriesById(text);
-		} else {
+		}
+		else {
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -61,34 +61,36 @@ public class Series {
 		options = new LinkedList<Series>();
 		try {
 			Scanner s = new Scanner(search);
-			while (s.hasNextLine()) {
+			while ( s.hasNextLine() ) {
 				String line = s.nextLine();
 				String tag = XMLParser.getTag(line);
 				String data = XMLParser.getData(line);
 
-				if (tag.equals("showid")) {
+				if ( tag.equals("showid") ) {
 					Series temp = new Series();
 					temp.seriesFile = App.getContext().getCacheDir()
 							.getAbsolutePath()
 							+ "/search/" + data;
 					temp.seriesCache = new File(temp.seriesFile);
-					if (!temp.seriesCache.exists()) {
+					if ( !temp.seriesCache.exists() ) {
 						try {
 							temp.seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
 									+ App.API_KEY + "&sid=" + data;
 							FileUtils.copyURLToFile(new URL(temp.seriesUrl),
 									temp.seriesCache);
-						} catch (IOException e) {
+						}
+						catch ( IOException e ) {
 						}
 					}
 					temp.parse();
 					options.add(temp);
 				}
 			}
-			if (s != null) {
+			if ( s != null ) {
 				s.close();
 			}
-		} catch (FileNotFoundException e) {
+		}
+		catch ( FileNotFoundException e ) {
 		}
 
 	}
@@ -98,12 +100,13 @@ public class Series {
 		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
 				+ "/series/" + seriesid;
 		seriesCache = new File(seriesFile);
-		if (!seriesCache.exists()) {
+		if ( !seriesCache.exists() ) {
 			try {
 				seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
 						+ App.API_KEY + "&sid=" + seriesid;
 				FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
-			} catch (IOException e) {
+			}
+			catch ( IOException e ) {
 				e.printStackTrace();
 				return;
 			}
@@ -112,16 +115,17 @@ public class Series {
 		fetchEpisodeInfo();
 	}
 
-	private void fetchEpisodeInfo() {
+	public void fetchEpisodeInfo() {
 		episodeFile = App.getContext().getCacheDir().getAbsolutePath()
 				+ "/episodes/" + seriesid;
 		episodeCache = new File(episodeFile);
-		if (!episodeCache.exists()) {
+		if ( !episodeCache.exists() ) {
 			try {
 				episodeUrl = "http://services.tvrage.com/myfeeds/episode_list.php?key="
 						+ App.API_KEY + "&sid=" + seriesid;
 				FileUtils.copyURLToFile(new URL(episodeUrl), episodeCache);
-			} catch (IOException e) {
+			}
+			catch ( IOException e ) {
 				e.printStackTrace();
 				return;
 			}
@@ -131,27 +135,30 @@ public class Series {
 		try {
 			s = new Scanner(episodeCache);
 			String currSeason = "";
-			while (s.hasNextLine()) {
+			while ( s.hasNextLine() ) {
 				String line = s.nextLine();
 				String tag = XMLParser.getTag(line);
 				String data = XMLParser.getData(line);
-				if (data == null) {
+				if ( data == null ) {
 					data = "Not Available";
 				}
-				if (tag.equals("episode")) {
+				if ( tag.equals("episode") ) {
 					episodes.add(new Episode(line, currSeason, this));
-				} else if (tag.contains("Season no=")) {
+				}
+				else if ( tag.contains("Season no=") ) {
 					String temp = tag.split("\"")[1].split("\"")[0];
 					currSeason = "s";
-					if (Integer.parseInt(temp) < 10) {
+					if ( Integer.parseInt(temp) < 10 ) {
 						currSeason += "0";
 					}
 					currSeason += temp;
-				} else if (tag.equals("Special")) {
+				}
+				else if ( tag.equals("Special") ) {
 					break;
 				}
 			}
-		} catch (FileNotFoundException e) {
+		}
+		catch ( FileNotFoundException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -164,60 +171,66 @@ public class Series {
 		return this.seriesid;
 	}
 
-	protected void parse() {
+	public void parse() {
 		try {
 			Scanner s = new Scanner(seriesCache);
-			while (s.hasNextLine()) {
+			while ( s.hasNextLine() ) {
 				String line = s.nextLine();
 				String tag = XMLParser.getTag(line);
 				String data = XMLParser.getData(line);
-				if (data == null) {
+				if ( data == null ) {
 					data = "Not Available";
 				}
-				if (tag.equals("name") || tag.equals("showname")) {
+				if ( tag.equals("name") || tag.equals("showname") ) {
 					seriesName = data.replaceAll("&#39;", "'")
 							.replaceAll("&quot;", "\"")
 							.replaceAll("&amp;", "&");
-				} else if (tag.equals("started") || tag.equals("startdate")) {
+				}
+				else if ( tag.equals("started") || tag.equals("startdate") ) {
 					firstAired = data;
-				} else if (tag.equals("summary")) {
+				}
+				else if ( tag.equals("summary") ) {
 					summary = data.replaceAll("&#39;", "'")
 							.replaceAll("&quot;", "\"")
 							.replaceAll("&amp;", "&");
-				} else if (tag.equals("airtime")) {
+				}
+				else if ( tag.equals("airtime") ) {
 					airTime = data;
-				} else if (tag.equals("showid")) {
+				}
+				else if ( tag.equals("showid") ) {
 					seriesid = data;
-				} else if (tag.contains("etwork") && !tag.contains("/")) {
+				}
+				else if ( tag.contains("etwork") && !tag.contains("/") ) {
 					network = data;
-				} else if (tag.equals("status")) {
+				}
+				else if ( tag.equals("status") ) {
 					status = data;
-				} else if (tag.equals("seasons")) {
+				}
+				else if ( tag.equals("seasons") ) {
 					numSeasons = data;
-				} else if (tag.equals("image")) {
+				}
+				else if ( tag.equals("image") ) {
 					imageUrl = data;
-				} else if (tag.equals("timezone")) {
-					String temp = data;
-					String[] splits = temp.split(" ");
-					timeZone = TimeZone.getTimeZone(splits[0]);
-				} else if (tag.equals("classification")) {
+				}
+				else if ( tag.equals("classification") ) {
 					classification = data;
 				}
 			}
-		} catch (FileNotFoundException e) {
+		}
+		catch ( FileNotFoundException e ) {
 			// e.printStackTrace();
 		}
 	}
 
 	public LinkedList<Episode> getTodaysEpisodes() {
 		LinkedList<Episode> returnVal = new LinkedList<Episode>();
-		for (Episode e : episodes) {
-			if (e.getAirDate().get(Calendar.YEAR) == App.today
+		for ( Episode e : episodes ) {
+			if ( e.getAirDate().get(Calendar.YEAR) == App.today
 					.get(Calendar.YEAR)
 					&& e.getAirDate().get(Calendar.MONTH) == App.today
 							.get(Calendar.MONTH)
 					&& e.getAirDate().get(Calendar.DATE) == App.today
-							.get(Calendar.DATE)) {
+							.get(Calendar.DATE) ) {
 				returnVal.add(e);
 			}
 		}
@@ -229,7 +242,7 @@ public class Series {
 		seriesFile = App.getContext().getCacheDir().getAbsolutePath()
 				+ "/series/" + seriesid;
 		seriesCache = new File(seriesFile);
-		if (!seriesCache.exists()) {
+		if ( !seriesCache.exists() ) {
 			seriesUrl = "http://services.tvrage.com/myfeeds/showinfo.php?key="
 					+ App.API_KEY + "&sid=" + seriesid;
 			FileUtils.copyURLToFile(new URL(seriesUrl), seriesCache);
@@ -237,7 +250,7 @@ public class Series {
 		episodeFile = App.getContext().getCacheDir().getAbsolutePath()
 				+ "/episodes/" + seriesid;
 		episodeCache = new File(episodeFile);
-		if (!episodeCache.exists()) {
+		if ( !episodeCache.exists() ) {
 			episodeUrl = "http://services.tvrage.com/myfeeds/episode_list.php?key="
 					+ App.API_KEY + "&sid=" + seriesid;
 			FileUtils.copyURLToFile(new URL(episodeUrl), episodeCache);
@@ -268,10 +281,6 @@ public class Series {
 		return classification;
 	}
 
-	public TimeZone getTimeZone() {
-		return timeZone;
-	}
-
 	public String getAirTime() {
 		return airTime;
 	}
@@ -288,10 +297,10 @@ public class Series {
 		return summary;
 	}
 
-	protected void deleteCache() {
-		if (seriesCache != null)
+	public void deleteCache() {
+		if ( seriesCache != null )
 			seriesCache.delete();
-		if (episodeCache != null)
+		if ( episodeCache != null )
 			episodeCache.delete();
 	}
 

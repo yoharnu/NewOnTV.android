@@ -8,6 +8,7 @@ import java.util.Calendar;
 
 import org.apache.commons.io.FileUtils;
 
+import com.yoharnu.newontv.App;
 import com.yoharnu.newontv.android.R;
 
 import android.net.Uri;
@@ -29,20 +30,31 @@ public class EpisodeDisplay extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_episode_display);
 		// Show the Up button in the action bar.
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 	}
 
 	protected void onStart() {
 		super.onStart();
-		final Series series = new Series(this.getIntent().getExtras()
-				.getString("series"), Series.ID);
+		String id = this.getIntent().getExtras().getString("series");
+		Series temp = null;
+		for ( Series s : App.shows ) {
+			if ( s.getSeriesId().equals(id) ) {
+				temp = s;
+			}
+		}
+		if ( temp == null ) {
+			this.finish();
+		}
+		final Series series = temp;
+		// final Series series = new Series(this.getIntent().getExtras() .getString("series"), Series.ID);
 		this.setTitle(series.getSeriesName());
 		String s = this.getIntent().getExtras().getString("season");
 		String e = this.getIntent().getExtras().getString("episode");
-		for (Episode episode : series.episodes) {
-			if (episode.getSeason().equals(s) && episode.getEpisode().equals(e)) {
+		for ( Episode episode : series.episodes ) {
+			if ( episode.getSeason().equals(s)
+					&& episode.getEpisode().equals(e) ) {
 				this.episode = episode;
 			}
 		}
@@ -90,8 +102,8 @@ public class EpisodeDisplay extends Activity {
 		new Thread(new Runnable() {
 			public void run() {
 				try {
-					if (episode.getScreencap() != null) {
-						if (!imageFile.exists())
+					if ( episode.getScreencap() != null ) {
+						if ( !imageFile.exists() )
 							FileUtils.copyURLToFile(
 									new URL(episode.getScreencap()), imageFile);
 						EpisodeDisplay.this.runOnUiThread(new Runnable() {
@@ -99,11 +111,12 @@ public class EpisodeDisplay extends Activity {
 								image.setImageURI(Uri.fromFile(imageFile));
 							}
 						});
-					} else {
+					}
+					else {
 						final File imageFile = new File(EpisodeDisplay.this
 								.getCacheDir(), "images/" + series.seriesid
 								+ "/" + series.seriesid);
-						if (!imageFile.exists())
+						if ( !imageFile.exists() )
 							FileUtils.copyURLToFile(new URL(series.imageUrl),
 									imageFile);
 						EpisodeDisplay.this.runOnUiThread(new Runnable() {
@@ -112,9 +125,11 @@ public class EpisodeDisplay extends Activity {
 							}
 						});
 					}
-				} catch (MalformedURLException e) {
+				}
+				catch ( MalformedURLException e ) {
 					e.printStackTrace();
-				} catch (IOException e) {
+				}
+				catch ( IOException e ) {
 					e.printStackTrace();
 				}
 			}
